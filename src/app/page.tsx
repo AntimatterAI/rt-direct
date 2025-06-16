@@ -9,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger)
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, MapPin, Clock, Shield, Star, TrendingUp } from 'lucide-react'
+import { Users, MapPin, Clock, Shield, Star, TrendingUp, Stethoscope, Activity, Award, Heart, ArrowRight, CheckCircle, Building } from 'lucide-react'
 
 export default function HomePage() {
   const router = useRouter()
@@ -128,21 +128,31 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
+                <Heart className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">
                 RT Direct
               </h1>
-              <Badge className="ml-3 bg-blue-100 text-blue-800">Beta</Badge>
+              <Badge className="bg-blue-100 text-blue-800 border-0">Professional</Badge>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => router.push('/auth/signin')}>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="ghost" 
+                onClick={() => router.push('/auth/signin')}
+                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+              >
                 Sign In
               </Button>
-              <Button onClick={() => router.push('/auth/signup')}>
-                Get Started
+              <Button 
+                onClick={() => router.push('/auth/signup')}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                Get Started Free
               </Button>
             </div>
           </div>
@@ -154,29 +164,62 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="hero-title text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-                Connect Radiologic Techs with{' '}
-                <span className="text-blue-600 dark:text-blue-400">Dream Jobs</span>
+              <div className="hero-title flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl flex items-center justify-center">
+                  <Stethoscope className="w-7 h-7 text-white" />
+                </div>
+                <Badge className="bg-green-100 text-green-700 px-3 py-1">
+                  Healthcare Professional Platform
+                </Badge>
+              </div>
+              <h1 className="hero-title text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Advance Your{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-green-600">
+                  Radiology Career
+                </span>
               </h1>
-              <p className="hero-subtitle text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                The premier platform for radiology professionals to find their next opportunity 
-                and for healthcare facilities to discover top talent.
+              <p className="hero-subtitle text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
+                Join the leading platform connecting radiologic technologists with top healthcare facilities. 
+                Discover opportunities that match your expertise and career goals.
               </p>
+              
+              {/* Trust Indicators */}
+              <div className="hero-trust flex flex-wrap items-center gap-4 mb-8">
+                <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-gray-700">1,200+ Active Jobs</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200">
+                  <Shield className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-700">HIPAA Compliant</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm font-medium text-gray-700">4.9/5 User Rating</span>
+                </div>
+              </div>
+
               <div className="hero-buttons flex flex-col sm:flex-row gap-4">
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 py-3"
+                  className="text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
                   onClick={() => router.push('/auth/signup')}
                 >
-                  Find Your Next Role
+                  <div className="flex items-center space-x-2">
+                    <span>Start Your Career Journey</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-3"
+                  className="text-lg px-8 py-4 border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-colors"
                   onClick={() => router.push('/jobs')}
                 >
-                  Browse Jobs
+                  <div className="flex items-center space-x-2">
+                    <Activity className="w-5 h-5" />
+                    <span>Explore Opportunities</span>
+                  </div>
                 </Button>
               </div>
             </div>
@@ -184,47 +227,85 @@ export default function HomePage() {
             <div className="hero-image relative">
               <div className="relative">
                 {/* Floating Cards */}
-                <Card className="floating-1 absolute top-4 right-4 w-48 bg-white/90 dark:bg-gray-800/90 backdrop-blur">
+                <Card className="floating-1 absolute top-4 right-4 w-52 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
                   <CardContent className="p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium">New Job Alert</span>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-semibold text-gray-900">Live Job Alert</span>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                      CT Technologist - $80K
-                    </p>
+                    <div className="flex items-center space-x-2">
+                      <Activity className="w-4 h-4 text-blue-600" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">MRI Technologist</p>
+                        <p className="text-xs text-green-600 font-medium">$75K - $85K • Boston, MA</p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="floating-2 absolute bottom-8 left-0 w-44 bg-white/90 dark:bg-gray-800/90 backdrop-blur">
+                <Card className="floating-2 absolute bottom-8 left-0 w-48 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
                   <CardContent className="p-4">
-                    <div className="flex items-center space-x-2">
-                      <Users className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium">1,247</span>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Users className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-gray-900">1,247</p>
+                        <p className="text-xs text-gray-600">Healthcare Professionals</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                      Active Professionals
-                    </p>
+                    <div className="flex items-center space-x-1">
+                      <TrendingUp className="w-3 h-3 text-green-500" />
+                      <span className="text-xs text-green-600 font-medium">+15% this month</span>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="floating-3 absolute top-1/2 left-8 w-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur">
+                <Card className="floating-3 absolute top-1/2 left-8 w-44 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
                   <CardContent className="p-4">
-                    <div className="flex items-center space-x-2">
-                      <Star className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm font-medium">4.9/5</span>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <Award className="w-4 h-4 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-gray-900">4.9/5</p>
+                        <p className="text-xs text-gray-600">Platform Rating</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                      User Rating
-                    </p>
+                    <div className="flex items-center space-x-1">
+                      <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                      <span className="text-xs text-gray-600">Trusted by professionals</span>
+                    </div>
                   </CardContent>
                 </Card>
 
                 {/* Main Hero Image/Illustration */}
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 text-white text-center">
-                  <div className="text-6xl mb-4">🏥</div>
-                  <h3 className="text-xl font-semibold mb-2">Healthcare Innovation</h3>
-                  <p className="text-blue-100">Connecting talent with opportunity</p>
+                <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-green-600 rounded-3xl p-8 text-white text-center shadow-2xl">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                      <Building className="w-8 h-8 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-white">
+                    Healthcare Excellence
+                  </h3>
+                  <p className="text-blue-100 mb-6 leading-relaxed">
+                    Empowering radiologic professionals with career opportunities at leading medical institutions
+                  </p>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                      <div className="text-xl font-bold text-white">500+</div>
+                      <div className="text-xs text-blue-100">Hospitals</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                      <div className="text-xl font-bold text-white">24/7</div>
+                      <div className="text-xs text-blue-100">Support</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                      <div className="text-xl font-bold text-white">95%</div>
+                      <div className="text-xs text-blue-100">Success Rate</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

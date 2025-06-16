@@ -4,22 +4,57 @@ import { SignUpFormData, SignInFormData, UserRole } from '@/types'
 export async function signUp(data: SignUpFormData) {
   const { email, password, role, firstName, lastName } = data
 
-  // Sign up the user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-  })
+  try {
+    // Sign up the user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
 
-  if (authError) {
-    throw new Error(authError.message)
+    if (authError) {
+      throw new Error(authError.message)
+    }
+
+    if (authData.user) {
+      // Wait a bit for auth session to be established
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Use the database function for profile creation
+      const { data: functionResult, error: functionError } = await supabase
+        .rpc('handle_user_signup', {
+          user_id: authData.user.id,
+          user_email: email,
+          user_role: role,
+          first_name: firstName,
+          last_name: lastName,
+        })
+
+      if (functionError) {
+        console.error('Profile creation error:', functionError)
+        // Fallback to manual creation
+        await createProfileManually(authData.user.id, email, role, firstName, lastName)
+      } else if (functionResult && !functionResult.success) {
+        console.error('Profile function error:', functionResult.message)
+        // Fallback to manual creation
+        await createProfileManually(authData.user.id, email, role, firstName, lastName)
+      }
+    }
+
+    return authData
+  } catch (error) {
+    console.error('Signup error:', error)
+    throw error
   }
+}
 
-  if (authData.user) {
+// Fallback function for manual profile creation
+async function createProfileManually(userId: string, email: string, role: string, firstName: string, lastName: string) {
+  try {
     // Create profile
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
-        id: authData.user.id,
+        id: userId,
         email,
         role,
         first_name: firstName,
@@ -27,7 +62,7 @@ export async function signUp(data: SignUpFormData) {
       })
 
     if (profileError) {
-      throw new Error(profileError.message)
+      throw new Error(`Profile creation failed: ${profileError.message}`)
     }
 
     // Create role-specific profile
@@ -35,7 +70,7 @@ export async function signUp(data: SignUpFormData) {
       const { error: techProfileError } = await supabase
         .from('tech_profiles')
         .insert({
-          profile_id: authData.user.id,
+          profile_id: userId,
           experience_years: 0,
           certifications: [],
           specializations: [],
@@ -44,13 +79,13 @@ export async function signUp(data: SignUpFormData) {
         })
 
       if (techProfileError) {
-        throw new Error(techProfileError.message)
+        console.error('Tech profile creation failed:', techProfileError.message)
       }
     } else if (role === 'employer') {
       const { error: employerProfileError } = await supabase
         .from('employer_profiles')
         .insert({
-          profile_id: authData.user.id,
+          profile_id: userId,
           company_name: '',
           company_size: '',
           industry: 'Healthcare',
@@ -58,12 +93,13 @@ export async function signUp(data: SignUpFormData) {
         })
 
       if (employerProfileError) {
-        throw new Error(employerProfileError.message)
+        console.error('Employer profile creation failed:', employerProfileError.message)
       }
     }
+  } catch (error) {
+    console.error('Manual profile creation failed:', error)
+    throw error
   }
-
-  return authData
 }
 
 export async function signIn(data: SignInFormData) {
