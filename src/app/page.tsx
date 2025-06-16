@@ -46,55 +46,61 @@ export default function HomePage() {
         '-=0.8'
       )
 
-      // Features Animation on Scroll
-      gsap.fromTo('.feature-card',
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: featuresRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
+      // Features Animation on Scroll - only if elements exist
+      if (document.querySelector('.feature-card')) {
+        gsap.fromTo('.feature-card',
+          { y: 60, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: featuresRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse'
+            }
           }
-        }
-      )
+        )
+      }
 
-      // Stats Animation
-      gsap.fromTo('.stat-item',
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: statsRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
+      // Stats Animation - only if elements exist
+      if (document.querySelector('.stat-item')) {
+        gsap.fromTo('.stat-item',
+          { y: 40, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: statsRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse'
+            }
           }
-        }
-      )
+        )
+      }
 
-      // CTA Animation
-      gsap.fromTo('.cta-content',
-        { y: 50, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: ctaRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
+      // CTA Animation - only if elements exist
+      if (document.querySelector('.cta-content')) {
+        gsap.fromTo('.cta-content',
+          { y: 50, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: ctaRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse'
+            }
           }
-        }
-      )
+        )
+      }
 
       // Floating animation for hero elements
       gsap.to('.floating-1', {
