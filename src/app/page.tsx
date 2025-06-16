@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-gsap.registerPlugin(ScrollTrigger)
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+}
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,32 +26,39 @@ export default function HomePage() {
     // Set page title for SEO
     document.title = 'RT Direct - Find Your Next Radiology Career | Radiologic Technologist Jobs'
     
+    // Create GSAP context for cleanup
     const ctx = gsap.context(() => {
-      // Hero Animation
-      const tl = gsap.timeline()
-      
-      tl.fromTo('.hero-title', 
+      // Helper function to safely animate elements
+      const safeAnimate = (selector: string, fromVars: gsap.TweenVars, toVars: gsap.TweenVars) => {
+        const elements = document.querySelectorAll(selector)
+        if (elements.length > 0) {
+          gsap.fromTo(elements, fromVars, toVars)
+        }
+      }
+
+      // Animate hero elements if they exist
+      safeAnimate('.hero-title', 
         { y: 100, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+        { y: 0, opacity: 1, duration: 1, ease: 'power3.out', stagger: 0.2 }
       )
-      .fromTo('.hero-subtitle',
+      
+      safeAnimate('.hero-subtitle',
         { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
-        '-=0.5'
+        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.5 }
       )
-      .fromTo('.hero-buttons',
+      
+      safeAnimate('.hero-buttons',
         { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' },
-        '-=0.3'
+        { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', delay: 0.8 }
       )
-      .fromTo('.hero-image',
+      
+      safeAnimate('.hero-image',
         { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 1, ease: 'power3.out' },
-        '-=0.8'
+        { scale: 1, opacity: 1, duration: 1, ease: 'power3.out', delay: 0.3 }
       )
 
-      // Features Animation on Scroll - only if elements exist
-      if (document.querySelector('.feature-card')) {
+      // Features Animation with ScrollTrigger
+      if (featuresRef.current && document.querySelector('.feature-card')) {
         gsap.fromTo('.feature-card',
           { y: 60, opacity: 0 },
           {
@@ -65,8 +76,8 @@ export default function HomePage() {
         )
       }
 
-      // Stats Animation - only if elements exist
-      if (document.querySelector('.stat-item')) {
+      // Stats Animation with ScrollTrigger
+      if (statsRef.current && document.querySelector('.stat-item')) {
         gsap.fromTo('.stat-item',
           { y: 40, opacity: 0 },
           {
@@ -84,8 +95,8 @@ export default function HomePage() {
         )
       }
 
-      // CTA Animation - only if elements exist
-      if (document.querySelector('.cta-content')) {
+      // CTA Animation with ScrollTrigger
+      if (ctaRef.current && document.querySelector('.cta-content')) {
         gsap.fromTo('.cta-content',
           { y: 50, opacity: 0 },
           {
@@ -102,36 +113,50 @@ export default function HomePage() {
         )
       }
 
-      // Floating animation for hero elements
-      gsap.to('.floating-1', {
-        y: -20,
-        duration: 2,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power2.inOut'
-      })
+      // Floating animations for hero elements (only if they exist)
+      const floating1 = document.querySelector('.floating-1')
+      const floating2 = document.querySelector('.floating-2')
+      const floating3 = document.querySelector('.floating-3')
 
-      gsap.to('.floating-2', {
-        y: -15,
-        duration: 2.5,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power2.inOut',
-        delay: 0.5
-      })
+      if (floating1) {
+        gsap.to(floating1, {
+          y: -20,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power2.inOut'
+        })
+      }
 
-      gsap.to('.floating-3', {
-        y: -25,
-        duration: 1.8,
-        repeat: -1,
-        yoyo: true,
-        ease: 'power2.inOut',
-        delay: 1
-      })
+      if (floating2) {
+        gsap.to(floating2, {
+          y: -15,
+          duration: 2.5,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power2.inOut',
+          delay: 0.5
+        })
+      }
+
+      if (floating3) {
+        gsap.to(floating3, {
+          y: -25,
+          duration: 1.8,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power2.inOut',
+          delay: 1
+        })
+      }
 
     }, [heroRef, featuresRef, statsRef, ctaRef])
 
-    return () => ctx.revert()
+    // Cleanup function
+    return () => {
+      ctx.revert()
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+    }
   }, [])
 
   return (
