@@ -19,6 +19,9 @@ export default function HomePage() {
   const ctaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Set page title for SEO
+    document.title = 'RT Direct - Find Your Next Radiology Career | Radiologic Technologist Jobs'
+    
     const ctx = gsap.context(() => {
       // Hero Animation
       const tl = gsap.timeline()
@@ -131,28 +134,29 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
                 <Heart className="w-5 h-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">
                 RT Direct
               </h1>
-              <Badge className="bg-blue-100 text-blue-800 border-0">Professional</Badge>
+              <Badge className="hidden sm:inline-flex bg-blue-100 text-blue-800 border-0 text-xs">Professional</Badge>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <Button 
                 variant="ghost" 
                 onClick={() => router.push('/auth/signin')}
-                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 text-sm sm:text-base px-3 sm:px-4"
               >
                 Sign In
               </Button>
               <Button 
                 onClick={() => router.push('/auth/signup')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base px-3 sm:px-6"
               >
-                Get Started Free
+                <span className="hidden sm:inline">Get Started Free</span>
+                <span className="sm:hidden">Sign Up</span>
               </Button>
             </div>
           </div>
@@ -172,13 +176,13 @@ export default function HomePage() {
                   Healthcare Professional Platform
                 </Badge>
               </div>
-              <h1 className="hero-title text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="hero-title text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Advance Your{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-green-600">
                   Radiology Career
                 </span>
               </h1>
-              <p className="hero-subtitle text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
+              <p className="hero-subtitle text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
                 Join the leading platform connecting radiologic technologists with top healthcare facilities. 
                 Discover opportunities that match your expertise and career goals.
               </p>
@@ -202,23 +206,25 @@ export default function HomePage() {
               <div className="hero-buttons flex flex-col sm:flex-row gap-4">
                 <Button 
                   size="lg" 
-                  className="text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+                  className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
                   onClick={() => router.push('/auth/signup')}
                 >
                   <div className="flex items-center space-x-2">
-                    <span>Start Your Career Journey</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <span className="hidden sm:inline">Start Your Career Journey</span>
+                    <span className="sm:hidden">Get Started</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="text-lg px-8 py-4 border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-colors"
+                  className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-colors"
                   onClick={() => router.push('/jobs')}
                 >
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-5 h-5" />
-                    <span>Explore Opportunities</span>
+                    <Activity className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline">Explore Opportunities</span>
+                    <span className="sm:hidden">Explore Jobs</span>
                   </div>
                 </Button>
               </div>
@@ -226,8 +232,8 @@ export default function HomePage() {
             
             <div className="hero-image relative">
               <div className="relative">
-                {/* Floating Cards */}
-                <Card className="floating-1 absolute top-4 right-4 w-52 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+                {/* Floating Cards - Hidden on small screens to prevent overlap */}
+                <Card className="floating-1 absolute -top-8 -right-12 w-52 bg-white/95 backdrop-blur-sm border-0 shadow-lg hidden lg:block">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2 mb-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -243,7 +249,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
 
-                <Card className="floating-2 absolute bottom-8 left-0 w-48 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+                <Card className="floating-2 absolute -bottom-4 -left-8 w-48 bg-white/95 backdrop-blur-sm border-0 shadow-lg hidden lg:block">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -261,7 +267,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
 
-                <Card className="floating-3 absolute top-1/2 left-8 w-44 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+                <Card className="floating-3 absolute top-1/2 -left-6 w-44 bg-white/95 backdrop-blur-sm border-0 shadow-lg hidden lg:block">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -442,8 +448,8 @@ export default function HomePage() {
               </Button>
               <Button 
                 size="lg" 
-                variant="outline"
-                className="text-lg px-8 py-3 text-white border-white hover:bg-white hover:text-blue-600"
+                variant="secondary"
+                className="text-lg px-8 py-3 bg-white text-blue-600 hover:bg-blue-50 border-0 shadow-lg"
                 onClick={() => router.push('/jobs')}
               >
                 Explore Opportunities

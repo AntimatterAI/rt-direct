@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /jobs
+Allow: /auth/signup
+Allow: /auth/signin
+
+# Block private/admin areas
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /employers
+
+# Sitemap location
+Sitemap: https://rt-direct.vercel.app/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1 

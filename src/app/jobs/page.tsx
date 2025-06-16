@@ -7,9 +7,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MapPin, Clock, DollarSign, Building } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Building, Map as MapIcon, Briefcase } from 'lucide-react'
 import { Job, WorkType, EmploymentType } from '@/types'
 import { supabase } from '@/lib/supabase'
+
+// Simple Job Map Component
+function JobMap({ jobs }: { jobs: Job[] }) {
+  const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)))
+  
+  return (
+    <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+      <div className="text-center p-6">
+        <MapIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="font-semibold text-gray-700 mb-2">Interactive Map</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Showing {jobs.length} jobs across {uniqueLocations.length} locations
+        </p>
+        <div className="space-y-2">
+          {uniqueLocations.slice(0, 5).map((location, index) => (
+            <div key={index} className="flex items-center justify-between text-xs bg-white px-3 py-2 rounded">
+              <span className="font-medium">{location}</span>
+              <Badge variant="secondary" className="text-xs">
+                {jobs.filter(job => job.location === location).length}
+              </Badge>
+            </div>
+          ))}
+          {uniqueLocations.length > 5 && (
+            <div className="text-xs text-gray-500">
+              +{uniqueLocations.length - 5} more locations
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function JobsPage() {
   const router = useRouter()
@@ -21,6 +53,9 @@ export default function JobsPage() {
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState<EmploymentType | 'all'>('all')
 
   useEffect(() => {
+    // Set page title for SEO
+    document.title = 'Browse Jobs | RT Direct - Radiology Technologist Positions'
+    
     loadJobs()
   }, [])
 
@@ -73,24 +108,7 @@ export default function JobsPage() {
     if (max) return `Up to $${max.toLocaleString()}`
   }
 
-  const getWorkTypeColor = (workType: WorkType) => {
-    switch (workType) {
-      case 'remote': return 'bg-green-100 text-green-800'
-      case 'hybrid': return 'bg-blue-100 text-blue-800'
-      case 'on-site': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
-  const getEmploymentTypeColor = (employmentType: EmploymentType) => {
-    switch (employmentType) {
-      case 'full-time': return 'bg-purple-100 text-purple-800'
-      case 'part-time': return 'bg-orange-100 text-orange-800'
-      case 'contract': return 'bg-yellow-100 text-yellow-800'
-      case 'per-diem': return 'bg-pink-100 text-pink-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -99,12 +117,16 @@ export default function JobsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                 RT Direct
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/dashboard')}>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => router.push('/dashboard')}
+                className="text-sm sm:text-base px-3 sm:px-4"
+              >
                 Dashboard
               </Button>
             </div>
@@ -115,11 +137,11 @@ export default function JobsPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Radiology Jobs
           </h2>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Find your next opportunity in diagnostic imaging
           </p>
         </div>
@@ -171,96 +193,141 @@ export default function JobsPage() {
           </p>
         </div>
 
-        {/* Job Listings */}
-        <div className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="text-lg text-gray-600">Loading jobs...</div>
-            </div>
-          ) : filteredJobs.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  No jobs found
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Try adjusting your search criteria to find more opportunities.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredJobs.map((job) => (
-              <Card key={job.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300 mb-3">
-                                                 <div className="flex items-center">
-                           <Building className="w-4 h-4 mr-1" />
-                           {(job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name || 'Company Name'}
-                         </div>
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {job.location}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {new Date(job.posted_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge className={getWorkTypeColor(job.work_type)}>
-                          {job.work_type.charAt(0).toUpperCase() + job.work_type.slice(1)}
-                        </Badge>
-                        <Badge className={getEmploymentTypeColor(job.employment_type)}>
-                          {job.employment_type.charAt(0).toUpperCase() + job.employment_type.slice(1)}
-                        </Badge>
-                                                 {job.shift_type.map((shift: string) => (
-                           <Badge key={shift} variant="outline">
-                             {shift}
-                           </Badge>
-                         ))}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center text-green-600 font-semibold mb-2">
-                        <DollarSign className="w-4 h-4 mr-1" />
-                        {formatSalary(job.salary_min, job.salary_max)}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base mb-4">
-                    {job.description.length > 200 
-                      ? `${job.description.substring(0, 200)}...` 
-                      : job.description
-                    }
-                  </CardDescription>
-                  {job.requirements.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="font-semibold mb-2">Key Requirements:</h4>
-                      <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300">
-                                                 {job.requirements.slice(0, 3).map((req: string, index: number) => (
-                           <li key={index}>{req}</li>
-                         ))}
-                        {job.requirements.length > 3 && (
-                          <li>...and {job.requirements.length - 3} more</li>
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                  <Button 
-                    onClick={() => router.push(`/jobs/${job.id}`)}
-                    className="w-full sm:w-auto"
-                  >
-                    View Details & Apply
-                  </Button>
+        {/* Job Listings with Map */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Job List */}
+          <div className="lg:col-span-2">
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <div className="text-lg text-gray-600">Loading jobs...</div>
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    No jobs found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Try adjusting your search criteria to find more opportunities.
+                  </p>
                 </CardContent>
               </Card>
-            ))
-          )}
+            ) : (
+              <div className="space-y-4">
+                {filteredJobs.map((job) => (
+                  <Card 
+                    key={job.id} 
+                    className="hover:shadow-lg transition-all cursor-pointer bg-white/70 backdrop-blur-sm border-0 shadow-md"
+                    onClick={() => router.push(`/jobs/${job.id}`)}
+                  >
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-xl mb-2 text-gray-900 hover:text-blue-600 transition-colors">
+                            {job.title}
+                          </CardTitle>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                            <div className="flex items-center">
+                              <Building className="w-4 h-4 mr-1" />
+                              {(job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name || 'Company Name'}
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              {job.location}
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="w-4 h-4 mr-1" />
+                              {new Date(job.created_at || job.posted_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <Badge className="bg-blue-100 text-blue-800">
+                              {job.employment_type}
+                            </Badge>
+                            <Badge className="bg-green-100 text-green-800">
+                              {job.work_type}
+                            </Badge>
+                            {job.shifts && job.shifts.slice(0, 2).map((shift: string) => (
+                              <Badge key={shift} variant="outline" className="text-xs">
+                                {shift}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center text-green-600 font-semibold mb-2">
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            {formatSalary(job.salary_min, job.salary_max)}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-base mb-4 text-gray-700">
+                        {job.description.length > 150 
+                          ? `${job.description.substring(0, 150)}...` 
+                          : job.description
+                        }
+                      </CardDescription>
+                      {job.requirements && job.requirements.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="font-semibold mb-2 text-gray-900">Key Requirements:</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600">
+                            {job.requirements.slice(0, 2).map((req: string, index: number) => (
+                              <li key={index}>{req}</li>
+                            ))}
+                            {job.requirements.length > 2 && (
+                              <li className="text-blue-600">...and {job.requirements.length - 2} more</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <Button 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/jobs/${job.id}`)
+                          }}
+                          className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                        >
+                          View Details & Apply
+                        </Button>
+                        <div className="text-xs text-gray-500">
+                          {job.department && (
+                            <Badge variant="outline" className="text-xs">
+                              {job.department}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Map Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <MapIcon className="w-5 h-5 text-blue-600" />
+                    <span>Job Locations</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Explore opportunities by location
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <JobMap jobs={filteredJobs} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </main>
     </div>

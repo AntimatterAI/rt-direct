@@ -13,6 +13,9 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Set page title for SEO
+    document.title = 'Dashboard | RT Direct - Manage Your Radiology Career'
+    
     async function loadProfile() {
       try {
         const user = await getCurrentUser()
@@ -140,7 +143,11 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => router.push('/profile/tech')}
+                  >
                     Edit Profile
                   </Button>
                 </CardContent>
@@ -173,7 +180,11 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => router.push('/employers/jobs')}
+                  >
                     View Jobs
                   </Button>
                 </CardContent>
@@ -181,14 +192,18 @@ export default function DashboardPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Candidates</CardTitle>
+                  <CardTitle>Company Profile</CardTitle>
                   <CardDescription>
-                    Review job applications
+                    Update your company information
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full">
-                    View Candidates
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => router.push('/profile/employer')}
+                  >
+                    Edit Profile
                   </Button>
                 </CardContent>
               </Card>

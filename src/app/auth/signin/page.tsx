@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,11 @@ export default function SignInPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    // Set page title for SEO
+    document.title = 'Sign In | RT Direct - Access Your Account'
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
