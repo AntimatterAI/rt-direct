@@ -108,7 +108,7 @@ export default function PostJobPage() {
         return
       }
 
-      const userProfile = await getUserProfile(user.id)
+      const userProfile = await getUserProfile()
       if (userProfile.role !== 'employer') {
         router.push('/dashboard')
         return

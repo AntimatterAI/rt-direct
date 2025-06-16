@@ -97,13 +97,13 @@ export default function EmployerProfilePage() {
         return
       }
 
-      const userProfile = await getUserProfile(user.id)
+      const userProfile = await getUserProfile()
       if (userProfile.role !== 'employer') {
         router.push('/dashboard')
         return
       }
 
-      setProfile(userProfile)
+      setProfile(userProfile.employer_profiles[0])
       setPersonalInfo({
         first_name: userProfile.first_name || '',
         last_name: userProfile.last_name || '',

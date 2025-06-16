@@ -24,7 +24,7 @@ export default function DashboardPage() {
           return
         }
 
-        const userProfile = await getUserProfile(user.id)
+        const userProfile = await getUserProfile()
         setProfile(userProfile)
       } catch (error) {
         console.error('Error loading profile:', error)

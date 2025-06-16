@@ -113,13 +113,13 @@ export default function TechProfilePage() {
         return
       }
 
-      const userProfile = await getUserProfile(user.id)
+      const userProfile = await getUserProfile()
       if (userProfile.role !== 'tech') {
         router.push('/dashboard')
         return
       }
 
-      setProfile(userProfile)
+      setProfile(userProfile.tech_profiles[0])
       setPersonalInfo({
         first_name: userProfile.first_name || '',
         last_name: userProfile.last_name || '',
