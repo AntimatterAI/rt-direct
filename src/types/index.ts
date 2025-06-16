@@ -1,4 +1,5 @@
 export type { Database } from './database'
+import type { Database } from './database'
 
 // Utility types
 export type Profile = Database['public']['Tables']['profiles']['Row']

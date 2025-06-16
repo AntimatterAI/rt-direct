@@ -27,7 +27,7 @@ export default function JobsPage() {
   async function loadJobs() {
     try {
       setIsLoading(true)
-      let query = supabase
+      const query = supabase
         .from('jobs')
         .select(`
           *,
@@ -196,10 +196,10 @@ export default function JobsPage() {
                     <div className="flex-1">
                       <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
                       <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300 mb-3">
-                        <div className="flex items-center">
-                          <Building className="w-4 h-4 mr-1" />
-                          {(job as any).employer_profiles?.company_name || 'Company Name'}
-                        </div>
+                                                 <div className="flex items-center">
+                           <Building className="w-4 h-4 mr-1" />
+                           {(job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name || 'Company Name'}
+                         </div>
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
                           {job.location}
@@ -216,11 +216,11 @@ export default function JobsPage() {
                         <Badge className={getEmploymentTypeColor(job.employment_type)}>
                           {job.employment_type.charAt(0).toUpperCase() + job.employment_type.slice(1)}
                         </Badge>
-                        {job.shift_type.map((shift) => (
-                          <Badge key={shift} variant="outline">
-                            {shift}
-                          </Badge>
-                        ))}
+                                                 {job.shift_type.map((shift: string) => (
+                           <Badge key={shift} variant="outline">
+                             {shift}
+                           </Badge>
+                         ))}
                       </div>
                     </div>
                     <div className="text-right">
@@ -242,9 +242,9 @@ export default function JobsPage() {
                     <div className="mb-4">
                       <h4 className="font-semibold mb-2">Key Requirements:</h4>
                       <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300">
-                        {job.requirements.slice(0, 3).map((req, index) => (
-                          <li key={index}>{req}</li>
-                        ))}
+                                                 {job.requirements.slice(0, 3).map((req: string, index: number) => (
+                           <li key={index}>{req}</li>
+                         ))}
                         {job.requirements.length > 3 && (
                           <li>...and {job.requirements.length - 3} more</li>
                         )}
