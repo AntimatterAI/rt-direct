@@ -2,36 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { signUp, getCurrentUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { AlertCircle, Loader2, User, Building, CheckCircle } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import Link from 'next/link'
 
-const signUpSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-  role: z.enum(['tech', 'employer'], {
-    required_error: 'Please select your role',
-  }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
-
-type SignUpFormData = z.infer<typeof signUpSchema>
-
-export default function SignUpPage() {
+export default function SimpleSignUpPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -39,37 +18,31 @@ export default function SignUpPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<SignUpFormData>({
-    resolver: zodResolver(signUpSchema),
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'tech' as 'tech' | 'employer'
   })
-
-  const selectedRole = watch('role')
 
   // Check if user is already authenticated (with protection against infinite loops)
   useEffect(() => {
-    if (hasCheckedAuth) return // Prevent multiple auth checks
+    if (hasCheckedAuth) return
 
     const checkAuthStatus = async () => {
       try {
-        // Add a small delay to prevent rapid redirects
         await new Promise(resolve => setTimeout(resolve, 500))
         
         const user = await getCurrentUser()
         if (user) {
           console.log('User already authenticated, redirecting to dashboard...')
-          // Use replace instead of push to prevent back button issues
           router.replace('/dashboard')
           return
         }
       } catch (authError) {
         console.log('No authenticated user found or auth error:', authError)
-        // Don't redirect on auth errors, just show the signup form
       } finally {
         setIsCheckingAuth(false)
         setHasCheckedAuth(true)
@@ -79,20 +52,51 @@ export default function SignUpPage() {
     checkAuthStatus()
   }, [router, hasCheckedAuth])
 
-  const onSubmit = async (data: SignUpFormData) => {
-    if (isLoading) return // Prevent double submissions
-    
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const handleRoleChange = (role: 'tech' | 'employer') => {
+    setFormData(prev => ({
+      ...prev,
+      role
+    }))
+  }
+
+  const validateForm = () => {
+    if (!formData.firstName.trim()) return 'First name is required'
+    if (!formData.lastName.trim()) return 'Last name is required'
+    if (!formData.email.trim()) return 'Email is required'
+    if (!formData.password) return 'Password is required'
+    if (formData.password.length < 8) return 'Password must be at least 8 characters'
+    if (formData.password !== formData.confirmPassword) return 'Passwords do not match'
+    return null
+  }
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isLoading) return
+
+    const validationError = validateForm()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
     try {
       console.log('Starting signup process...')
       const result = await signUp({
-        email: data.email,
-        password: data.password,
-        role: data.role,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
       })
 
       console.log('Signup result:', result)
@@ -100,11 +104,10 @@ export default function SignUpPage() {
       if (result.success) {
         setSuccess(true)
         
-        // Show success message before redirecting
         setTimeout(() => {
           console.log('Redirecting to dashboard...')
           router.replace('/dashboard')
-        }, 2000) // Longer delay to show success message
+        }, 2000)
       } else {
         throw new Error('Signup failed for unknown reason')
       }
@@ -166,24 +169,24 @@ export default function SignUpPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={onSubmit} className="space-y-6">
               {/* Role Selection */}
               <div className="space-y-3">
                 <Label className="text-base font-medium">I am a...</Label>
-                <RadioGroup
-                  value={selectedRole}
-                  onValueChange={(value) => setValue('role', value as 'tech' | 'employer')}
-                  className="grid grid-cols-2 gap-4"
-                >
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <RadioGroupItem
-                      value="tech"
+                    <input
+                      type="radio"
                       id="tech"
-                      className="peer sr-only"
+                      name="role"
+                      value="tech"
+                      checked={formData.role === 'tech'}
+                      onChange={() => handleRoleChange('tech')}
+                      className="sr-only peer"
                     />
                     <Label
                       htmlFor="tech"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-checked:border-primary cursor-pointer"
                     >
                       <User className="mb-3 h-6 w-6" />
                       <span className="font-medium">RT Professional</span>
@@ -193,14 +196,18 @@ export default function SignUpPage() {
                     </Label>
                   </div>
                   <div>
-                    <RadioGroupItem
-                      value="employer"
+                    <input
+                      type="radio"
                       id="employer"
-                      className="peer sr-only"
+                      name="role"
+                      value="employer"
+                      checked={formData.role === 'employer'}
+                      onChange={() => handleRoleChange('employer')}
+                      className="sr-only peer"
                     />
                     <Label
                       htmlFor="employer"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-checked:border-primary cursor-pointer"
                     >
                       <Building className="mb-3 h-6 w-6" />
                       <span className="font-medium">Healthcare Facility</span>
@@ -209,10 +216,7 @@ export default function SignUpPage() {
                       </span>
                     </Label>
                   </div>
-                </RadioGroup>
-                {errors.role && (
-                  <p className="text-sm text-red-600">{errors.role.message}</p>
-                )}
+                </div>
               </div>
 
               {/* Name Fields */}
@@ -221,25 +225,25 @@ export default function SignUpPage() {
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
-                    {...register('firstName')}
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
                     placeholder="John"
                     disabled={isLoading}
+                    required
                   />
-                  {errors.firstName && (
-                    <p className="text-sm text-red-600">{errors.firstName.message}</p>
-                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
-                    {...register('lastName')}
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
                     placeholder="Doe"
                     disabled={isLoading}
+                    required
                   />
-                  {errors.lastName && (
-                    <p className="text-sm text-red-600">{errors.lastName.message}</p>
-                  )}
                 </div>
               </div>
 
@@ -248,14 +252,14 @@ export default function SignUpPage() {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  {...register('email')}
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="john@example.com"
                   disabled={isLoading}
+                  required
                 />
-                {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
-                )}
               </div>
 
               {/* Password Fields */}
@@ -263,36 +267,36 @@ export default function SignUpPage() {
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
-                  {...register('password')}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Enter your password"
                   disabled={isLoading}
+                  required
                 />
-                {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
-                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
-                  {...register('confirmPassword')}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
                   placeholder="Confirm your password"
                   disabled={isLoading}
+                  required
                 />
-                {errors.confirmPassword && (
-                  <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
-                )}
               </div>
 
               {/* Error Alert */}
               {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-center space-x-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-sm text-red-800">{error}</span>
+                </div>
               )}
 
               {/* Submit Button */}

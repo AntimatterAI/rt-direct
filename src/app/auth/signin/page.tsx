@@ -26,6 +26,7 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
   const {
     register,
@@ -35,27 +36,37 @@ export default function SignInPage() {
     resolver: zodResolver(signInSchema),
   })
 
-  // Check if user is already authenticated
+  // Check if user is already authenticated (with protection against infinite loops)
   useEffect(() => {
+    if (hasCheckedAuth) return // Prevent multiple auth checks
+
     const checkAuthStatus = async () => {
       try {
+        // Add a small delay to prevent rapid redirects
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         const user = await getCurrentUser()
         if (user) {
-          console.log('User already authenticated, redirecting...')
-          router.push('/dashboard')
+          console.log('User already authenticated, redirecting to dashboard...')
+          // Use replace instead of push to prevent back button issues
+          router.replace('/dashboard')
           return
         }
-      } catch {
-        console.log('No authenticated user found')
+      } catch (authError) {
+        console.log('No authenticated user found or auth error:', authError)
+        // Don't redirect on auth errors, just show the signin form
       } finally {
         setIsCheckingAuth(false)
+        setHasCheckedAuth(true)
       }
     }
 
     checkAuthStatus()
-  }, [router])
+  }, [router, hasCheckedAuth])
 
   const onSubmit = async (data: SignInFormData) => {
+    if (isLoading) return // Prevent double submissions
+    
     setIsLoading(true)
     setError(null)
 
@@ -68,10 +79,10 @@ export default function SignInPage() {
 
       console.log('Signin successful:', result.user?.id)
       
-      // Small delay to ensure session is established
+      // Small delay to ensure session is established, then redirect
       setTimeout(() => {
-        router.push('/dashboard')
-      }, 500)
+        router.replace('/dashboard')
+      }, 1000)
 
     } catch (signInError: unknown) {
       console.error('Signin error:', signInError)
