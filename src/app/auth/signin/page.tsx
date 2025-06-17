@@ -2,24 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { signIn, getCurrentUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Loader2 } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import Link from 'next/link'
-
-const signInSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-})
-
-type SignInFormData = z.infer<typeof signInSchema>
 
 export default function SignInPage() {
   const router = useRouter()
@@ -28,33 +17,27 @@ export default function SignInPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignInFormData>({
-    resolver: zodResolver(signInSchema),
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
   })
 
   // Check if user is already authenticated (with protection against infinite loops)
   useEffect(() => {
-    if (hasCheckedAuth) return // Prevent multiple auth checks
+    if (hasCheckedAuth) return
 
     const checkAuthStatus = async () => {
       try {
-        // Add a small delay to prevent rapid redirects
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
         const user = await getCurrentUser()
         if (user) {
           console.log('User already authenticated, redirecting to dashboard...')
-          // Use replace instead of push to prevent back button issues
           router.replace('/dashboard')
           return
         }
       } catch (authError) {
         console.log('No authenticated user found or auth error:', authError)
-        // Don't redirect on auth errors, just show the signin form
       } finally {
         setIsCheckingAuth(false)
         setHasCheckedAuth(true)
@@ -64,22 +47,42 @@ export default function SignInPage() {
     checkAuthStatus()
   }, [router, hasCheckedAuth])
 
-  const onSubmit = async (data: SignInFormData) => {
-    if (isLoading) return // Prevent double submissions
-    
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const validateForm = () => {
+    if (!formData.email.trim()) return 'Email is required'
+    if (!formData.email.includes('@')) return 'Please enter a valid email address'
+    if (!formData.password) return 'Password is required'
+    return null
+  }
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isLoading) return
+
+    const validationError = validateForm()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
     try {
       console.log('Starting signin process...')
       const result = await signIn({
-        email: data.email,
-        password: data.password,
+        email: formData.email,
+        password: formData.password,
       })
 
       console.log('Signin successful:', result.user?.id)
       
-      // Small delay to ensure session is established, then redirect
       setTimeout(() => {
         router.replace('/dashboard')
       }, 1000)
@@ -121,20 +124,20 @@ export default function SignInPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={onSubmit} className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
-                  {...register('email')}
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="Enter your email"
                   disabled={isLoading}
+                  required
                 />
-                {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
-                )}
               </div>
 
               {/* Password Field */}
@@ -142,22 +145,22 @@ export default function SignInPage() {
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
-                  {...register('password')}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="Enter your password"
                   disabled={isLoading}
+                  required
                 />
-                {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
-                )}
               </div>
 
               {/* Error Alert */}
               {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-center space-x-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                  <span className="text-sm text-red-800">{error}</span>
+                </div>
               )}
 
               {/* Submit Button */}
