@@ -2,276 +2,316 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { signUp, getCurrentUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { signUp } from '@/lib/auth'
-import { SignUpFormData, UserRole } from '@/types'
-import { Stethoscope, Building, Shield, Heart, CheckCircle } from 'lucide-react'
+import { AlertCircle, Loader2, User, Building, CheckCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import Link from 'next/link'
+
+const signUpSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+  role: z.enum(['tech', 'employer'], {
+    required_error: 'Please select your role',
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+})
+
+type SignUpFormData = z.infer<typeof signUpSchema>
 
 export default function SignUpPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState<SignUpFormData>({
-    email: '',
-    password: '',
-    role: 'tech',
-    firstName: '',
-    lastName: '',
-  })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+  })
+
+  const selectedRole = watch('role')
+
+  // Check if user is already authenticated
   useEffect(() => {
-    // Set page title for SEO
-    document.title = 'Sign Up Free | RT Direct - Start Your Radiology Career'
-  }, [])
+    const checkAuthStatus = async () => {
+      try {
+        const user = await getCurrentUser()
+        if (user) {
+          console.log('User already authenticated, redirecting...')
+          router.push('/dashboard')
+          return
+        }
+      } catch {
+        console.log('No authenticated user found')
+      } finally {
+        setIsCheckingAuth(false)
+      }
+    }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    checkAuthStatus()
+  }, [router])
+
+  const onSubmit = async (data: SignUpFormData) => {
     setIsLoading(true)
-    setError('')
+    setError(null)
 
     try {
-      await signUp(formData)
-      router.push('/dashboard')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      console.log('Starting signup process...')
+      const result = await signUp({
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      })
+
+      console.log('Signup result:', result)
+
+      if (result.success) {
+        setSuccess(true)
+        
+        // Show success message briefly
+        setTimeout(() => {
+          console.log('Redirecting to dashboard...')
+          router.push('/dashboard')
+        }, 1500)
+      } else {
+        throw new Error('Signup failed for unknown reason')
+      }
+
+    } catch (signUpError: unknown) {
+      console.error('Signup error:', signUpError)
+      const message = signUpError instanceof Error ? signUpError.message : 'An error occurred during signup'
+      setError(message)
+      setSuccess(false)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
+  // Show loading spinner while checking auth status
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    )
   }
 
-  const handleRoleChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      role: value as UserRole
-    }))
+  // Show success state
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl text-green-600">Welcome to RT Direct!</CardTitle>
+            <CardDescription>
+              Your account has been created successfully. Redirecting you to your dashboard...
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-green-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">RT Direct</span>
-            </Link>
-            <Link href="/auth/signin">
-              <Button variant="ghost" className="text-gray-600 hover:text-blue-600">
-                Sign In
-              </Button>
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12 px-4">
+      <div className="max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Join RT Direct</h1>
+          <p className="text-gray-600">Create your account to get started</p>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          {/* Trust Indicators */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center space-x-2 mb-4">
-              <div className="flex items-center space-x-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                <Shield className="w-4 h-4" />
-                <span>HIPAA Compliant</span>
-              </div>
-              <div className="flex items-center space-x-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                <CheckCircle className="w-4 h-4" />
-                <span>Verified Platform</span>
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Join RT Direct
-            </h1>
-            <p className="text-gray-600">
-              Connect with the best opportunities in radiology
-            </p>
-          </div>
-
-          {/* Signup Card */}
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl shadow-blue-900/10">
-            <CardHeader className="space-y-1 pb-6">
-              <CardTitle className="text-xl font-semibold text-center text-gray-900">
-                Create your account
-              </CardTitle>
-              <CardDescription className="text-center text-gray-600">
-                Start your journey with RT Direct today
-              </CardDescription>
-            </CardHeader>
-            
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-6">
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span>{error}</span>
-                  </div>
-                )}
-                
-                {/* Role Selection */}
-                <div className="space-y-4">
-                  <Label className="text-sm font-medium text-gray-900">I am a...</Label>
-                  <RadioGroup
-                    value={formData.role}
-                    onValueChange={handleRoleChange}
-                    className="grid grid-cols-1 gap-4"
-                  >
-                    <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/50 transition-colors cursor-pointer">
-                      <RadioGroupItem value="tech" id="tech" className="text-blue-600" />
-                      <div className="flex items-center space-x-3 flex-1">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Stethoscope className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <Label htmlFor="tech" className="font-medium text-gray-900 cursor-pointer">
-                            Radiologic Technologist
-                          </Label>
-                          <p className="text-sm text-gray-500">Find your next imaging role</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50/50 transition-colors cursor-pointer">
-                      <RadioGroupItem value="employer" id="employer" className="text-green-600" />
-                      <div className="flex items-center space-x-3 flex-1">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <Building className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <Label htmlFor="employer" className="font-medium text-gray-900 cursor-pointer">
-                            Healthcare Employer
-                          </Label>
-                          <p className="text-sm text-gray-500">Post jobs & find talent</p>
-                        </div>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-sm font-medium text-gray-900">
-                      First Name
-                    </Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      required
-                      className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-sm font-medium text-gray-900">
-                      Last Name
-                    </Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      required
-                      className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                    />
-                  </div>
-                </div>
-                
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-900">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  />
-                </div>
-                
-                {/* Password */}
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-900">
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    minLength={6}
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  />
-                  <p className="text-xs text-gray-500 flex items-center space-x-1">
-                    <Shield className="w-3 h-3" />
-                    <span>Minimum 6 characters, secured with industry-standard encryption</span>
-                  </p>
-                </div>
-              </CardContent>
-              
-              <CardFooter className="flex flex-col space-y-4 pt-6">
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5" 
-                  disabled={isLoading}
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Account</CardTitle>
+            <CardDescription>
+              Join thousands of respiratory therapy professionals
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Role Selection */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">I am a...</Label>
+                <RadioGroup
+                  value={selectedRole}
+                  onValueChange={(value) => setValue('role', value as 'tech' | 'employer')}
+                  className="grid grid-cols-2 gap-4"
                 >
-                  {isLoading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Creating account...</span>
-                    </div>
-                  ) : (
-                    'Create account'
+                  <div>
+                    <RadioGroupItem
+                      value="tech"
+                      id="tech"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="tech"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <User className="mb-3 h-6 w-6" />
+                      <span className="font-medium">RT Professional</span>
+                      <span className="text-xs text-muted-foreground text-center">
+                        Looking for opportunities
+                      </span>
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem
+                      value="employer"
+                      id="employer"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="employer"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <Building className="mb-3 h-6 w-6" />
+                      <span className="font-medium">Healthcare Facility</span>
+                      <span className="text-xs text-muted-foreground text-center">
+                        Looking to hire
+                      </span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+                {errors.role && (
+                  <p className="text-sm text-red-600">{errors.role.message}</p>
+                )}
+              </div>
+
+              {/* Name Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    {...register('firstName')}
+                    placeholder="John"
+                    disabled={isLoading}
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-600">{errors.firstName.message}</p>
                   )}
-                </Button>
-                
-                <div className="text-center text-sm text-gray-600">
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    {...register('lastName')}
+                    placeholder="Doe"
+                    disabled={isLoading}
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-600">{errors.lastName.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register('email')}
+                  placeholder="john@example.com"
+                  disabled={isLoading}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Password Fields */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  {...register('password')}
+                  placeholder="Enter your password"
+                  disabled={isLoading}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  {...register('confirmPassword')}
+                  placeholder="Confirm your password"
+                  disabled={isLoading}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+
+              {/* Error Alert */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+
+              {/* Sign In Link */}
+              <div className="text-center">
+                <p className="text-sm text-gray-600">
                   Already have an account?{' '}
-                  <Link 
-                    href="/auth/signin" 
-                    className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
-                  >
+                  <Link href="/auth/signin" className="text-blue-600 hover:underline">
                     Sign in
                   </Link>
-                </div>
-
-                {/* Trust Footer */}
-                <div className="text-center pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500">
-                    By creating an account, you agree to our Terms of Service and Privacy Policy
-                  </p>
-                </div>
-              </CardFooter>
+                </p>
+              </div>
             </form>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
