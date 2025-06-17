@@ -29,29 +29,10 @@ export async function signUp(data: SignUpFormData) {
 
     console.log('User signed up successfully:', authData.user.id)
 
-    // Step 2: Wait for auth user to be fully created
+    // Step 2: Wait for auth user to be fully created in database
     await new Promise(resolve => setTimeout(resolve, 2000))
 
-    // Step 3: Verify user exists and retry if needed
-    let authUserExists = false
-    for (let i = 0; i < 5; i++) {
-      try {
-        const { data: userData } = await supabase.auth.getUser()
-        if (userData.user?.id === authData.user.id) {
-          authUserExists = true
-          break
-        }
-      } catch (error) {
-        console.log(`Auth verification attempt ${i + 1} failed:`, error)
-      }
-      await new Promise(resolve => setTimeout(resolve, 1000))
-    }
-
-    if (!authUserExists) {
-      throw new Error('Auth user creation could not be verified')
-    }
-
-    // Step 4: Try RPC function first (with retries)
+    // Step 3: Try RPC function first (with retries)
     let rpcSuccess = false
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
@@ -89,7 +70,7 @@ export async function signUp(data: SignUpFormData) {
       }
     }
 
-    // Step 5: Check if trigger created profile (with multiple attempts)
+    // Step 4: Check if trigger created profile (with multiple attempts)
     let profileExists = false
     for (let attempt = 1; attempt <= 5; attempt++) {
       try {
@@ -121,7 +102,7 @@ export async function signUp(data: SignUpFormData) {
       }
     }
 
-    // Step 6: Manual profile creation as final fallback
+    // Step 5: Manual profile creation as final fallback
     if (!profileExists && !rpcSuccess) {
       console.log('Profile not found, attempting manual creation...')
       
@@ -162,7 +143,7 @@ export async function signUp(data: SignUpFormData) {
       }
     }
 
-    // Step 7: Final verification
+    // Step 6: Final verification
     if (!profileExists) {
       // As absolute last resort, let's check if the user got created anyway
       try {
