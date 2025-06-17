@@ -24,11 +24,13 @@ export default function PostJobPage() {
     title: '',
     company_name: '',
     location: '',
-    work_type: 'Onsite', // Onsite, Remote, Hybrid
-    employment_type: 'Full-time', // Full-time, Part-time, Contract, PRN
+    work_type: 'on-site', // on-site, remote, hybrid
+    employment_type: 'contract', // contract, full-time, part-time, per-diem
     experience_level: 'Mid-level', // Entry-level, Mid-level, Senior, Lead
-    salary_min: '',
-    salary_max: '',
+    pay_type: 'hourly', // hourly, daily, weekly, annual
+    pay_rate: '',
+    pay_rate_max: '',
+    duration: '', // For contract work (e.g., "2 weeks", "1 month")
     description: '',
     requirements: [] as string[],
     benefits: [] as string[],
@@ -36,19 +38,54 @@ export default function PostJobPage() {
     department: '',
     equipment: '',
     contact_email: '',
+    start_date: '',
     application_deadline: ''
   })
 
   const [newRequirement, setNewRequirement] = useState('')
   const [newBenefit, setNewBenefit] = useState('')
 
-  const workTypeOptions = ['Onsite', 'Remote', 'Hybrid']
-  const employmentTypeOptions = ['Full-time', 'Part-time', 'Contract', 'PRN', 'Travel']
+  const workTypeOptions = [
+    { value: 'on-site', label: 'On-site' },
+    { value: 'remote', label: 'Remote' },
+    { value: 'hybrid', label: 'Hybrid' }
+  ]
+  const employmentTypeOptions = [
+    { value: 'contract', label: 'Contract' },
+    { value: 'per-diem', label: 'PRN/Per Diem' },
+    { value: 'full-time', label: 'Full-time' },
+    { value: 'part-time', label: 'Part-time' }
+  ]
   const experienceLevelOptions = ['Entry-level', 'Mid-level', 'Senior', 'Lead']
+  const payTypeOptions = [
+    { value: 'hourly', label: 'Hourly Rate' },
+    { value: 'daily', label: 'Daily Rate' },
+    { value: 'weekly', label: 'Weekly Rate' },
+    { value: 'annual', label: 'Annual Salary' }
+  ]
+
+  const usLocations = [
+    'Atlanta, GA', 'Austin, TX', 'Boston, MA', 'Charlotte, NC', 'Chicago, IL',
+    'Dallas, TX', 'Denver, CO', 'Houston, TX', 'Jacksonville, FL', 'Las Vegas, NV',
+    'Los Angeles, CA', 'Miami, FL', 'Nashville, TN', 'New York, NY', 'Orlando, FL',
+    'Philadelphia, PA', 'Phoenix, AZ', 'Portland, OR', 'San Antonio, TX', 'San Diego, CA',
+    'San Francisco, CA', 'Seattle, WA', 'Tampa, FL', 'Washington, DC',
+    'Birmingham, AL', 'Little Rock, AR', 'Tucson, AZ', 'Sacramento, CA',
+    'Colorado Springs, CO', 'Hartford, CT', 'Wilmington, DE', 'Tallahassee, FL',
+    'Columbus, GA', 'Honolulu, HI', 'Boise, ID', 'Springfield, IL', 'Indianapolis, IN',
+    'Des Moines, IA', 'Wichita, KS', 'Louisville, KY', 'New Orleans, LA',
+    'Portland, ME', 'Baltimore, MD', 'Worcester, MA', 'Detroit, MI', 'Minneapolis, MN',
+    'Jackson, MS', 'Kansas City, MO', 'Billings, MT', 'Omaha, NE', 'Reno, NV',
+    'Manchester, NH', 'Newark, NJ', 'Albuquerque, NM', 'Buffalo, NY', 'Charlotte, NC',
+    'Fargo, ND', 'Cleveland, OH', 'Oklahoma City, OK', 'Portland, OR', 'Pittsburgh, PA',
+    'Providence, RI', 'Columbia, SC', 'Sioux Falls, SD', 'Memphis, TN', 'El Paso, TX',
+    'Salt Lake City, UT', 'Burlington, VT', 'Virginia Beach, VA', 'Spokane, WA',
+    'Charleston, WV', 'Milwaukee, WI', 'Cheyenne, WY'
+  ]
 
   const shiftOptions = [
     'Day Shift (7AM-7PM)',
-    'Night Shift (7PM-7AM)',
+    'Night Shift (7PM-7AM)', 
     'Evening (3PM-11PM)',
     'Rotating Shifts',
     'On-call',
@@ -83,6 +120,8 @@ export default function PostJobPage() {
   ]
 
   const commonBenefits = [
+    'Housing provided',
+    'Travel stipend',
     'Health Insurance',
     'Dental Insurance',
     'Vision Insurance',
@@ -93,6 +132,7 @@ export default function PostJobPage() {
     'Professional Development',
     'Flexible Scheduling',
     'Sign-on Bonus',
+    'Completion Bonus',
     'Relocation Assistance'
   ]
 
@@ -181,44 +221,126 @@ export default function PostJobPage() {
     }))
   }
 
+  const getPayRateLabel = () => {
+    switch (jobData.pay_type) {
+      case 'hourly': return 'Hourly Rate ($)'
+      case 'daily': return 'Daily Rate ($)'
+      case 'weekly': return 'Weekly Rate ($)'
+      case 'annual': return 'Annual Salary ($)'
+      default: return 'Pay Rate ($)'
+    }
+  }
+
+  const validateForm = () => {
+    if (!jobData.title.trim()) return 'Job title is required'
+    if (!jobData.description.trim()) return 'Job description is required'
+    if (!jobData.location) return 'Location is required'
+    
+    if (jobData.pay_rate) {
+      const rate = parseFloat(jobData.pay_rate)
+      if (isNaN(rate) || rate <= 0) {
+        return 'Please enter a valid pay rate'
+      }
+      
+      if (jobData.pay_rate_max) {
+        const maxRate = parseFloat(jobData.pay_rate_max)
+        if (isNaN(maxRate) || maxRate <= 0) {
+          return 'Please enter a valid maximum pay rate'
+        }
+        if (maxRate <= rate) {
+          return 'Maximum pay rate must be higher than minimum'
+        }
+      }
+    }
+    
+    return null
+  }
+
   async function submitJob() {
-    if (!profile || !jobData.title || !jobData.description) {
-      alert('Please fill in all required fields')
+    const validationError = validateForm()
+    if (validationError) {
+      alert(validationError)
+      return
+    }
+
+    if (!profile) {
+      alert('Profile not loaded. Please refresh and try again.')
       return
     }
 
     setIsSubmitting(true)
     try {
+      // Convert pay rates to consistent format for database storage
+      let salaryMin = null
+      let salaryMax = null
+      
+      if (jobData.pay_rate) {
+        const rate = parseFloat(jobData.pay_rate)
+        const maxRate = jobData.pay_rate_max ? parseFloat(jobData.pay_rate_max) : rate
+        
+        // Convert all rates to annual equivalent for consistent storage
+        switch (jobData.pay_type) {
+          case 'hourly':
+            salaryMin = Math.round(rate * 40 * 52) // 40 hours/week * 52 weeks
+            salaryMax = Math.round(maxRate * 40 * 52)
+            break
+          case 'daily':
+            salaryMin = Math.round(rate * 5 * 52) // 5 days/week * 52 weeks
+            salaryMax = Math.round(maxRate * 5 * 52)
+            break
+          case 'weekly':
+            salaryMin = Math.round(rate * 52) // 52 weeks
+            salaryMax = Math.round(maxRate * 52)
+            break
+          case 'annual':
+            salaryMin = Math.round(rate)
+            salaryMax = Math.round(maxRate)
+            break
+        }
+      }
+
+             // Map experience level to years (approximate)
+       const experienceMap: { [key: string]: number } = {
+         'Entry-level': 0,
+         'Mid-level': 3,
+         'Senior': 7,
+         'Lead': 10
+       }
+
+       const jobPayload = {
+         employer_id: profile.id,
+         title: jobData.title.trim(),
+         location: jobData.location,
+         work_type: jobData.work_type,
+         employment_type: jobData.employment_type,
+         experience_required: experienceMap[jobData.experience_level] || 0,
+         salary_min: salaryMin,
+         salary_max: salaryMax,
+         description: `${jobData.description.trim()}
+
+${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.department ? `Department: ${jobData.department}\n` : ''}${jobData.equipment ? `Equipment & Technology: ${jobData.equipment}\n` : ''}${jobData.duration ? `Duration: ${jobData.duration}\n` : ''}${jobData.start_date ? `Start Date: ${jobData.start_date}\n` : ''}${jobData.contact_email ? `Contact: ${jobData.contact_email}\n` : ''}${jobData.application_deadline ? `Application Deadline: ${jobData.application_deadline}\n` : ''}${jobData.pay_type && jobData.pay_rate ? `Pay: $${jobData.pay_rate}${jobData.pay_rate_max ? ` - $${jobData.pay_rate_max}` : ''} ${jobData.pay_type}\n` : ''}`.trim(),
+         requirements: jobData.requirements,
+         benefits: jobData.benefits,
+         shift_type: jobData.shifts,
+         status: 'active'
+       }
+
+      console.log('Submitting job payload:', jobPayload)
+
       const { error } = await supabase
         .from('jobs')
-        .insert({
-          employer_id: profile.id,
-          title: jobData.title,
-          company_name: jobData.company_name,
-          location: jobData.location,
-          work_type: jobData.work_type,
-          employment_type: jobData.employment_type,
-          experience_level: jobData.experience_level,
-          salary_min: jobData.salary_min ? parseInt(jobData.salary_min) : null,
-          salary_max: jobData.salary_max ? parseInt(jobData.salary_max) : null,
-          description: jobData.description,
-          requirements: jobData.requirements,
-          benefits: jobData.benefits,
-          shifts: jobData.shifts,
-          department: jobData.department,
-          equipment: jobData.equipment,
-          contact_email: jobData.contact_email,
-          application_deadline: jobData.application_deadline || null,
-          status: 'active'
-        })
+        .insert(jobPayload)
 
-      if (error) throw error
+      if (error) {
+        console.error('Database error:', error)
+        throw error
+      }
 
       router.push('/employers/jobs?success=Job posted successfully!')
       
     } catch (error) {
       console.error('Error posting job:', error)
-      alert('Error posting job. Please try again.')
+      alert(`Error posting job: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -318,14 +440,20 @@ export default function PostJobPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={jobData.location}
-                    onChange={(e) => setJobData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="City, State"
-                    className="mt-1"
-                  />
+                  <Label htmlFor="location">Location *</Label>
+                  <Select 
+                    value={jobData.location} 
+                    onValueChange={(value) => setJobData(prev => ({ ...prev, location: value }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {usLocations.map(location => (
+                        <SelectItem key={location} value={location}>{location}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -340,7 +468,7 @@ export default function PostJobPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {workTypeOptions.map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -356,7 +484,7 @@ export default function PostJobPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {employmentTypeOptions.map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -379,26 +507,72 @@ export default function PostJobPage() {
                   </div>
                 </div>
 
+                <div>
+                  <Label>Pay Structure</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                    <div>
+                      <Label htmlFor="pay_type" className="text-sm">Pay Type</Label>
+                      <Select 
+                        value={jobData.pay_type} 
+                        onValueChange={(value) => setJobData(prev => ({ ...prev, pay_type: value }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {payTypeOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="pay_rate" className="text-sm">{getPayRateLabel()}</Label>
+                      <Input
+                        id="pay_rate"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={jobData.pay_rate}
+                        onChange={(e) => setJobData(prev => ({ ...prev, pay_rate: e.target.value }))}
+                        placeholder={jobData.pay_type === 'hourly' ? '35.00' : jobData.pay_type === 'daily' ? '280.00' : jobData.pay_type === 'weekly' ? '1400.00' : '70000'}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="pay_rate_max" className="text-sm">Max Rate (Optional)</Label>
+                      <Input
+                        id="pay_rate_max"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={jobData.pay_rate_max}
+                        onChange={(e) => setJobData(prev => ({ ...prev, pay_rate_max: e.target.value }))}
+                        placeholder={jobData.pay_type === 'hourly' ? '45.00' : jobData.pay_type === 'daily' ? '350.00' : jobData.pay_type === 'weekly' ? '1750.00' : '85000'}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="salary_min">Salary Min (Annual)</Label>
+                    <Label htmlFor="duration">Assignment Duration</Label>
                     <Input
-                      id="salary_min"
-                      type="number"
-                      value={jobData.salary_min}
-                      onChange={(e) => setJobData(prev => ({ ...prev, salary_min: e.target.value }))}
-                      placeholder="50000"
+                      id="duration"
+                      value={jobData.duration}
+                      onChange={(e) => setJobData(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="e.g., 2 weeks, 1 month, 13 weeks"
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="salary_max">Salary Max (Annual)</Label>
+                    <Label htmlFor="start_date">Start Date</Label>
                     <Input
-                      id="salary_max"
-                      type="number"
-                      value={jobData.salary_max}
-                      onChange={(e) => setJobData(prev => ({ ...prev, salary_max: e.target.value }))}
-                      placeholder="75000"
+                      id="start_date"
+                      type="date"
+                      value={jobData.start_date}
+                      onChange={(e) => setJobData(prev => ({ ...prev, start_date: e.target.value }))}
                       className="mt-1"
                     />
                   </div>
@@ -611,18 +785,26 @@ export default function PostJobPage() {
                   <MapPin className="w-3 h-3" />
                   <span>{jobData.location || 'Location'}</span>
                 </div>
-                {(jobData.salary_min || jobData.salary_max) && (
+                {jobData.pay_rate && (
                   <div className="flex items-center space-x-2 text-green-600">
                     <DollarSign className="w-3 h-3" />
                     <span>
-                      ${jobData.salary_min ? parseInt(jobData.salary_min).toLocaleString() : '?'} - 
-                      ${jobData.salary_max ? parseInt(jobData.salary_max).toLocaleString() : '?'}
+                      ${jobData.pay_rate}{jobData.pay_rate_max ? ` - $${jobData.pay_rate_max}` : ''} {jobData.pay_type}
                     </span>
                   </div>
                 )}
-                <div className="flex space-x-1">
-                  <Badge variant="secondary">{jobData.employment_type}</Badge>
-                  <Badge variant="secondary">{jobData.work_type}</Badge>
+                {jobData.duration && (
+                  <div className="text-blue-600 text-xs">
+                    Duration: {jobData.duration}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1">
+                  <Badge variant="secondary">
+                    {employmentTypeOptions.find(t => t.value === jobData.employment_type)?.label || jobData.employment_type}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {workTypeOptions.find(t => t.value === jobData.work_type)?.label || jobData.work_type}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
