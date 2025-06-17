@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getCurrentUser, getUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-import { Briefcase, MapPin, DollarSign, Clock, Save, Plus, X } from 'lucide-react'
+import { Briefcase, MapPin, DollarSign, Clock, Save, Plus, X, Search } from 'lucide-react'
 
 export default function PostJobPage() {
   const router = useRouter()
@@ -19,18 +19,23 @@ export default function PostJobPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [profile, setProfile] = useState<{ id: string; email: string; role: string } | null>(null)
 
+  // Location search state
+  const [locationSearch, setLocationSearch] = useState('')
+  const [filteredLocations, setFilteredLocations] = useState<string[]>([])
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+
   // Job form data
   const [jobData, setJobData] = useState({
     title: '',
     company_name: '',
     location: '',
-    work_type: 'on-site', // on-site, remote, hybrid
-    employment_type: 'contract', // contract, full-time, part-time, per-diem
-    experience_level: 'Mid-level', // Entry-level, Mid-level, Senior, Lead
-    pay_type: 'hourly', // hourly, daily, weekly, annual
+    work_type: 'on-site',
+    employment_type: 'contract',
+    experience_level: 'Mid-level',
+    pay_type: 'hourly', // This will be auto-set based on employment_type
     pay_rate: '',
     pay_rate_max: '',
-    duration: '', // For contract work (e.g., "2 weeks", "1 month")
+    duration: '',
     description: '',
     requirements: [] as string[],
     benefits: [] as string[],
@@ -50,37 +55,51 @@ export default function PostJobPage() {
     { value: 'remote', label: 'Remote' },
     { value: 'hybrid', label: 'Hybrid' }
   ]
+
   const employmentTypeOptions = [
-    { value: 'contract', label: 'Contract' },
-    { value: 'per-diem', label: 'PRN/Per Diem' },
-    { value: 'full-time', label: 'Full-time' },
-    { value: 'part-time', label: 'Part-time' }
-  ]
-  const experienceLevelOptions = ['Entry-level', 'Mid-level', 'Senior', 'Lead']
-  const payTypeOptions = [
-    { value: 'hourly', label: 'Hourly Rate' },
-    { value: 'daily', label: 'Daily Rate' },
-    { value: 'weekly', label: 'Weekly Rate' },
-    { value: 'annual', label: 'Annual Salary' }
+    { value: 'contract', label: 'Contract', defaultPayType: 'hourly' },
+    { value: 'per-diem', label: 'PRN/Per Diem', defaultPayType: 'daily' },
+    { value: 'full-time', label: 'Full-time', defaultPayType: 'annual' },
+    { value: 'part-time', label: 'Part-time', defaultPayType: 'hourly' }
   ]
 
-  const usLocations = [
-    'Atlanta, GA', 'Austin, TX', 'Boston, MA', 'Charlotte, NC', 'Chicago, IL',
-    'Dallas, TX', 'Denver, CO', 'Houston, TX', 'Jacksonville, FL', 'Las Vegas, NV',
-    'Los Angeles, CA', 'Miami, FL', 'Nashville, TN', 'New York, NY', 'Orlando, FL',
-    'Philadelphia, PA', 'Phoenix, AZ', 'Portland, OR', 'San Antonio, TX', 'San Diego, CA',
-    'San Francisco, CA', 'Seattle, WA', 'Tampa, FL', 'Washington, DC',
-    'Birmingham, AL', 'Little Rock, AR', 'Tucson, AZ', 'Sacramento, CA',
-    'Colorado Springs, CO', 'Hartford, CT', 'Wilmington, DE', 'Tallahassee, FL',
-    'Columbus, GA', 'Honolulu, HI', 'Boise, ID', 'Springfield, IL', 'Indianapolis, IN',
-    'Des Moines, IA', 'Wichita, KS', 'Louisville, KY', 'New Orleans, LA',
-    'Portland, ME', 'Baltimore, MD', 'Worcester, MA', 'Detroit, MI', 'Minneapolis, MN',
-    'Jackson, MS', 'Kansas City, MO', 'Billings, MT', 'Omaha, NE', 'Reno, NV',
-    'Manchester, NH', 'Newark, NJ', 'Albuquerque, NM', 'Buffalo, NY', 'Charlotte, NC',
-    'Fargo, ND', 'Cleveland, OH', 'Oklahoma City, OK', 'Portland, OR', 'Pittsburgh, PA',
-    'Providence, RI', 'Columbia, SC', 'Sioux Falls, SD', 'Memphis, TN', 'El Paso, TX',
-    'Salt Lake City, UT', 'Burlington, VT', 'Virginia Beach, VA', 'Spokane, WA',
-    'Charleston, WV', 'Milwaukee, WI', 'Cheyenne, WY'
+  const experienceLevelOptions = ['Entry-level', 'Mid-level', 'Senior', 'Lead']
+
+  // Comprehensive US locations database
+  const usLocationsDatabase = [
+    // Major cities with state abbreviations
+    'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ',
+    'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
+    'Austin, TX', 'Jacksonville, FL', 'San Francisco, CA', 'Columbus, OH', 'Charlotte, NC',
+    'Fort Worth, TX', 'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Boston, MA',
+    'El Paso, TX', 'Nashville, TN', 'Detroit, MI', 'Oklahoma City, OK', 'Portland, OR',
+    'Las Vegas, NV', 'Memphis, TN', 'Louisville, KY', 'Baltimore, MD', 'Milwaukee, WI',
+    'Albuquerque, NM', 'Tucson, AZ', 'Fresno, CA', 'Sacramento, CA', 'Kansas City, MO',
+    'Mesa, AZ', 'Atlanta, GA', 'Omaha, NE', 'Colorado Springs, CO', 'Raleigh, NC',
+    'Miami, FL', 'Virginia Beach, VA', 'Oakland, CA', 'Minneapolis, MN', 'Tulsa, OK',
+    'Arlington, TX', 'New Orleans, LA', 'Wichita, KS', 'Cleveland, OH', 'Tampa, FL',
+    'Bakersfield, CA', 'Aurora, CO', 'Honolulu, HI', 'Anaheim, CA', 'Santa Ana, CA',
+    'Corpus Christi, TX', 'Riverside, CA', 'Lexington, KY', 'Stockton, CA', 'St. Paul, MN',
+    'Cincinnati, OH', 'Anchorage, AK', 'Henderson, NV', 'Greensboro, NC', 'Plano, TX',
+    'Newark, NJ', 'Lincoln, NE', 'Buffalo, NY', 'Jersey City, NJ', 'Chula Vista, CA',
+    'Orlando, FL', 'Norfolk, VA', 'Chandler, AZ', 'Laredo, TX', 'Madison, WI',
+    'Durham, NC', 'Lubbock, TX', 'Winston-Salem, NC', 'Garland, TX', 'Glendale, AZ',
+    'Hialeah, FL', 'Reno, NV', 'Baton Rouge, LA', 'Irvine, CA', 'Chesapeake, VA',
+    'Irving, TX', 'Scottsdale, AZ', 'North Las Vegas, NV', 'Fremont, CA', 'Gilbert, AZ',
+    'San Bernardino, CA', 'Boise, ID', 'Birmingham, AL', 'Spokane, WA', 'Rochester, NY',
+    // Add more healthcare-focused locations
+    'Albany, NY', 'Richmond, VA', 'Salt Lake City, UT', 'Grand Rapids, MI', 'Huntsville, AL',
+    'Mobile, AL', 'Little Rock, AR', 'Hartford, CT', 'Bridgeport, CT', 'Wilmington, DE',
+    'Tallahassee, FL', 'Gainesville, FL', 'Pensacola, FL', 'Savannah, GA', 'Macon, GA',
+    'Cedar Rapids, IA', 'Des Moines, IA', 'Boise, ID', 'Peoria, IL', 'Rockford, IL',
+    'Evansville, IN', 'Fort Wayne, IN', 'Topeka, KS', 'Bowling Green, KY', 'Shreveport, LA',
+    'Portland, ME', 'Annapolis, MD', 'Worcester, MA', 'Springfield, MA', 'Ann Arbor, MI',
+    'Lansing, MI', 'Duluth, MN', 'Jackson, MS', 'Springfield, MO', 'Billings, MT',
+    'Charlotte, NC', 'Fargo, ND', 'Manchester, NH', 'Trenton, NJ', 'Santa Fe, NM',
+    'Syracuse, NY', 'Fayetteville, NC', 'Akron, OH', 'Youngstown, OH', 'Eugene, OR',
+    'Harrisburg, PA', 'Providence, RI', 'Columbia, SC', 'Sioux Falls, SD', 'Knoxville, TN',
+    'Amarillo, TX', 'Beaumont, TX', 'Burlington, VT', 'Newport News, VA', 'Spokane, WA',
+    'Charleston, WV', 'Green Bay, WI', 'Casper, WY'
   ]
 
   const shiftOptions = [
@@ -140,6 +159,33 @@ export default function PostJobPage() {
     loadUserProfile()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Smart location search
+  useEffect(() => {
+    if (locationSearch.length > 0) {
+      const filtered = usLocationsDatabase
+        .filter(location => 
+          location.toLowerCase().includes(locationSearch.toLowerCase())
+        )
+        .slice(0, 8) // Limit to 8 results
+      setFilteredLocations(filtered)
+      setShowLocationDropdown(true)
+    } else {
+      setFilteredLocations([])
+      setShowLocationDropdown(false)
+    }
+  }, [locationSearch])
+
+  // Auto-set pay type based on employment type
+  useEffect(() => {
+    const employmentOption = employmentTypeOptions.find(option => option.value === jobData.employment_type)
+    if (employmentOption) {
+      setJobData(prev => ({
+        ...prev,
+        pay_type: employmentOption.defaultPayType
+      }))
+    }
+  }, [jobData.employment_type])
+
   async function loadUserProfile() {
     try {
       const user = await getCurrentUser()
@@ -176,6 +222,12 @@ export default function PostJobPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleLocationSelect = (location: string) => {
+    setJobData(prev => ({ ...prev, location }))
+    setLocationSearch('')
+    setShowLocationDropdown(false)
   }
 
   const addRequirement = () => {
@@ -221,13 +273,43 @@ export default function PostJobPage() {
     }))
   }
 
-  const getPayRateLabel = () => {
+  const getPayRateLabels = () => {
     switch (jobData.pay_type) {
-      case 'hourly': return 'Hourly Rate ($)'
-      case 'daily': return 'Daily Rate ($)'
-      case 'weekly': return 'Weekly Rate ($)'
-      case 'annual': return 'Annual Salary ($)'
-      default: return 'Pay Rate ($)'
+      case 'hourly':
+        return {
+          min: 'Hourly Rate ($)',
+          max: 'Max Hourly ($)',
+          placeholder: '35.00',
+          maxPlaceholder: '45.00'
+        }
+      case 'daily':
+        return {
+          min: 'Daily Rate ($)',
+          max: 'Max Daily ($)',
+          placeholder: '280.00',
+          maxPlaceholder: '350.00'
+        }
+      case 'weekly':
+        return {
+          min: 'Weekly Rate ($)',
+          max: 'Max Weekly ($)',
+          placeholder: '1400.00',
+          maxPlaceholder: '1750.00'
+        }
+      case 'annual':
+        return {
+          min: 'Annual Salary ($)',
+          max: 'Max Salary ($)',
+          placeholder: '70000',
+          maxPlaceholder: '85000'
+        }
+      default:
+        return {
+          min: 'Rate ($)',
+          max: 'Max Rate ($)',
+          placeholder: '0.00',
+          maxPlaceholder: '0.00'
+        }
     }
   }
 
@@ -299,31 +381,31 @@ export default function PostJobPage() {
         }
       }
 
-             // Map experience level to years (approximate)
-       const experienceMap: { [key: string]: number } = {
-         'Entry-level': 0,
-         'Mid-level': 3,
-         'Senior': 7,
-         'Lead': 10
-       }
+      // Map experience level to years (approximate)
+      const experienceMap: { [key: string]: number } = {
+        'Entry-level': 0,
+        'Mid-level': 3,
+        'Senior': 7,
+        'Lead': 10
+      }
 
-       const jobPayload = {
-         employer_id: profile.id,
-         title: jobData.title.trim(),
-         location: jobData.location,
-         work_type: jobData.work_type,
-         employment_type: jobData.employment_type,
-         experience_required: experienceMap[jobData.experience_level] || 0,
-         salary_min: salaryMin,
-         salary_max: salaryMax,
-         description: `${jobData.description.trim()}
+      const jobPayload = {
+        employer_id: profile.id,
+        title: jobData.title.trim(),
+        location: jobData.location,
+        work_type: jobData.work_type,
+        employment_type: jobData.employment_type,
+        experience_required: experienceMap[jobData.experience_level] || 0,
+        salary_min: salaryMin,
+        salary_max: salaryMax,
+        description: `${jobData.description.trim()}
 
 ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.department ? `Department: ${jobData.department}\n` : ''}${jobData.equipment ? `Equipment & Technology: ${jobData.equipment}\n` : ''}${jobData.duration ? `Duration: ${jobData.duration}\n` : ''}${jobData.start_date ? `Start Date: ${jobData.start_date}\n` : ''}${jobData.contact_email ? `Contact: ${jobData.contact_email}\n` : ''}${jobData.application_deadline ? `Application Deadline: ${jobData.application_deadline}\n` : ''}${jobData.pay_type && jobData.pay_rate ? `Pay: $${jobData.pay_rate}${jobData.pay_rate_max ? ` - $${jobData.pay_rate_max}` : ''} ${jobData.pay_type}\n` : ''}`.trim(),
-         requirements: jobData.requirements,
-         benefits: jobData.benefits,
-         shift_type: jobData.shifts,
-         status: 'active'
-       }
+        requirements: jobData.requirements,
+        benefits: jobData.benefits,
+        shift_type: jobData.shifts,
+        status: 'active'
+      }
 
       console.log('Submitting job payload:', jobPayload)
 
@@ -356,6 +438,8 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
       </div>
     )
   }
+
+  const payLabels = getPayRateLabels()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-green-50">
@@ -439,21 +523,43 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
                   </div>
                 </div>
 
-                <div>
+                <div className="relative">
                   <Label htmlFor="location">Location *</Label>
-                  <Select 
-                    value={jobData.location} 
-                    onValueChange={(value) => setJobData(prev => ({ ...prev, location: value }))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {usLocations.map(location => (
-                        <SelectItem key={location} value={location}>{location}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative mt-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <Input
+                      id="location"
+                      value={locationSearch || jobData.location}
+                      onChange={(e) => {
+                        setLocationSearch(e.target.value)
+                        if (!e.target.value) {
+                          setJobData(prev => ({ ...prev, location: '' }))
+                        }
+                      }}
+                      onFocus={() => setLocationSearch(jobData.location)}
+                      placeholder="Search for city, state..."
+                      className="pl-10"
+                    />
+                    {showLocationDropdown && filteredLocations.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {filteredLocations.map((location, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                            onClick={() => handleLocationSelect(location)}
+                          >
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                              {location}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -507,76 +613,71 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
                   </div>
                 </div>
 
+                {/* Dynamic Pay Structure based on Employment Type */}
                 <div>
-                  <Label>Pay Structure</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                  <Label>
+                    Pay Structure - {employmentTypeOptions.find(t => t.value === jobData.employment_type)?.label}
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     <div>
-                      <Label htmlFor="pay_type" className="text-sm">Pay Type</Label>
-                      <Select 
-                        value={jobData.pay_type} 
-                        onValueChange={(value) => setJobData(prev => ({ ...prev, pay_type: value }))}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {payTypeOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="pay_rate" className="text-sm">{getPayRateLabel()}</Label>
+                      <Label htmlFor="pay_rate" className="text-sm">{payLabels.min}</Label>
                       <Input
                         id="pay_rate"
                         type="number"
                         min="0"
-                        step="0.01"
+                        step={jobData.pay_type === 'annual' ? '1000' : '0.01'}
                         value={jobData.pay_rate}
                         onChange={(e) => setJobData(prev => ({ ...prev, pay_rate: e.target.value }))}
-                        placeholder={jobData.pay_type === 'hourly' ? '35.00' : jobData.pay_type === 'daily' ? '280.00' : jobData.pay_type === 'weekly' ? '1400.00' : '70000'}
+                        placeholder={payLabels.placeholder}
                         className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="pay_rate_max" className="text-sm">Max Rate (Optional)</Label>
+                      <Label htmlFor="pay_rate_max" className="text-sm">{payLabels.max}</Label>
                       <Input
                         id="pay_rate_max"
                         type="number"
                         min="0"
-                        step="0.01"
+                        step={jobData.pay_type === 'annual' ? '1000' : '0.01'}
                         value={jobData.pay_rate_max}
                         onChange={(e) => setJobData(prev => ({ ...prev, pay_rate_max: e.target.value }))}
-                        placeholder={jobData.pay_type === 'hourly' ? '45.00' : jobData.pay_type === 'daily' ? '350.00' : jobData.pay_type === 'weekly' ? '1750.00' : '85000'}
+                        placeholder={payLabels.maxPlaceholder}
                         className="mt-1"
                       />
                     </div>
                   </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {jobData.employment_type === 'contract' && 'Perfect for temporary assignments (1-2 weeks)'}
+                    {jobData.employment_type === 'per-diem' && 'Ideal for flexible, as-needed coverage'}
+                    {jobData.employment_type === 'full-time' && 'Annual salary for permanent positions'}
+                    {jobData.employment_type === 'part-time' && 'Hourly rate for part-time schedules'}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="duration">Assignment Duration</Label>
-                    <Input
-                      id="duration"
-                      value={jobData.duration}
-                      onChange={(e) => setJobData(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="e.g., 2 weeks, 1 month, 13 weeks"
-                      className="mt-1"
-                    />
+                {(jobData.employment_type === 'contract' || jobData.employment_type === 'per-diem') && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="duration">Assignment Duration</Label>
+                      <Input
+                        id="duration"
+                        value={jobData.duration}
+                        onChange={(e) => setJobData(prev => ({ ...prev, duration: e.target.value }))}
+                        placeholder="e.g., 2 weeks, 1 month, 13 weeks"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="start_date">Start Date</Label>
+                      <Input
+                        id="start_date"
+                        type="date"
+                        value={jobData.start_date}
+                        onChange={(e) => setJobData(prev => ({ ...prev, start_date: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="start_date">Start Date</Label>
-                    <Input
-                      id="start_date"
-                      type="date"
-                      value={jobData.start_date}
-                      onChange={(e) => setJobData(prev => ({ ...prev, start_date: e.target.value }))}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
+                )}
 
                 <div>
                   <Label htmlFor="description">Job Description *</Label>
