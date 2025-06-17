@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
-import { Badge } from './ui/badge'
-import { MapPin, Navigation, Filter, DollarSign, Clock } from 'lucide-react'
+import { MapPin, Navigation, Filter } from 'lucide-react'
 import { getCurrentLocation, calculateDistance } from '@/lib/google-maps'
 
 interface Job {

@@ -39,9 +39,9 @@ export async function geocodeAddress(address: string): Promise<LocationData | nu
       
       // Extract city and state from address components
       const addressComponents = result.address_components
-      const city = addressComponents.find((comp: any) => comp.types.includes('locality'))?.long_name || ''
-      const state = addressComponents.find((comp: any) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
-      const country = addressComponents.find((comp: any) => comp.types.includes('country'))?.long_name || ''
+      const city = addressComponents.find((comp: { types: string[] }) => comp.types.includes('locality'))?.long_name || ''
+      const state = addressComponents.find((comp: { types: string[] }) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
+      const country = addressComponents.find((comp: { types: string[] }) => comp.types.includes('country'))?.long_name || ''
       
       return {
         formatted_address: result.formatted_address,
@@ -79,9 +79,9 @@ export async function reverseGeocode(lat: number, lng: number): Promise<Location
       const location = result.geometry.location
       
       const addressComponents = result.address_components
-      const city = addressComponents.find((comp: any) => comp.types.includes('locality'))?.long_name || ''
-      const state = addressComponents.find((comp: any) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
-      const country = addressComponents.find((comp: any) => comp.types.includes('country'))?.long_name || ''
+      const city = addressComponents.find((comp: { types: string[] }) => comp.types.includes('locality'))?.long_name || ''
+      const state = addressComponents.find((comp: { types: string[] }) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
+      const country = addressComponents.find((comp: { types: string[] }) => comp.types.includes('country'))?.long_name || ''
       
       return {
         formatted_address: result.formatted_address,
@@ -147,7 +147,7 @@ function toRadians(degrees: number): number {
 }
 
 // Get places autocomplete suggestions
-export async function getPlacesAutocomplete(input: string, types: string[] = ['(cities)']): Promise<any[]> {
+export async function getPlacesAutocomplete(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
   if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
     console.warn('Google Maps API key not configured')
     return []

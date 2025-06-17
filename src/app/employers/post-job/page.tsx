@@ -22,7 +22,7 @@ export default function PostJobPage() {
 
   // Location search state
   const [locationSearch, setLocationSearch] = useState('')
-  const [filteredLocations, setFilteredLocations] = useState<any[]>([])
+  const [filteredLocations, setFilteredLocations] = useState<{ description: string; place_id: string }[]>([])
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [isGeocodingLocation, setIsGeocodingLocation] = useState(false)
 
@@ -216,7 +216,7 @@ export default function PostJobPage() {
 
     const timeoutId = setTimeout(searchLocations, 300) // Debounce
     return () => clearTimeout(timeoutId)
-  }, [locationSearch])
+  }, [locationSearch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-set pay type based on employment type
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function PostJobPage() {
         pay_type: employmentOption.defaultPayType
       }))
     }
-  }, [jobData.employment_type])
+  }, [jobData.employment_type]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadUserProfile() {
     try {
@@ -267,7 +267,7 @@ export default function PostJobPage() {
     }
   }
 
-  const handleLocationSelect = async (locationData: any) => {
+  const handleLocationSelect = async (locationData: { description: string; place_id: string }) => {
     const locationText = locationData.description
     setJobData(prev => ({ ...prev, location: locationText }))
     setLocationSearch('')
