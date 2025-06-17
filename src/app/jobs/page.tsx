@@ -10,38 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Clock, DollarSign, Building, Map as MapIcon, Briefcase } from 'lucide-react'
 import { Job, WorkType, EmploymentType } from '@/types'
 import { supabase } from '@/lib/supabase'
-
-// Simple Job Map Component
-function JobMap({ jobs }: { jobs: Job[] }) {
-  const uniqueLocations = Array.from(new Set(jobs.map(job => job.location)))
-  
-  return (
-    <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-      <div className="text-center p-6">
-        <MapIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="font-semibold text-gray-700 mb-2">Interactive Map</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          Showing {jobs.length} jobs across {uniqueLocations.length} locations
-        </p>
-        <div className="space-y-2">
-          {uniqueLocations.slice(0, 5).map((location, index) => (
-            <div key={index} className="flex items-center justify-between text-xs bg-white px-3 py-2 rounded">
-              <span className="font-medium">{location}</span>
-              <Badge variant="secondary" className="text-xs">
-                {jobs.filter(job => job.location === location).length}
-              </Badge>
-            </div>
-          ))}
-          {uniqueLocations.length > 5 && (
-            <div className="text-xs text-gray-500">
-              +{uniqueLocations.length - 5} more locations
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
+import JobMap from '@/components/JobMap'
 
 export default function JobsPage() {
   const router = useRouter()
@@ -51,6 +20,7 @@ export default function JobsPage() {
   const [locationFilter, setLocationFilter] = useState('')
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType | 'all'>('all')
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState<EmploymentType | 'all'>('all')
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
 
   useEffect(() => {
     // Set page title for SEO
@@ -218,9 +188,14 @@ export default function JobsPage() {
               <div className="space-y-4">
                 {filteredJobs.map((job) => (
                   <Card 
-                    key={job.id} 
-                    className="hover:shadow-lg transition-all cursor-pointer bg-white/70 backdrop-blur-sm border-0 shadow-md"
+                    key={job.id}
+                    data-job-id={job.id}
+                    className={`hover:shadow-lg transition-all cursor-pointer bg-white/70 backdrop-blur-sm border-0 shadow-md ${
+                      selectedJobId === job.id ? 'ring-2 ring-blue-500 shadow-lg' : ''
+                    }`}
                     onClick={() => router.push(`/jobs/${job.id}`)}
+                    onMouseEnter={() => setSelectedJobId(job.id)}
+                    onMouseLeave={() => setSelectedJobId(null)}
                   >
                     <CardHeader>
                       <div className="flex justify-between items-start">
@@ -323,7 +298,30 @@ export default function JobsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <JobMap jobs={filteredJobs} />
+                  <JobMap 
+                    jobs={filteredJobs.map(job => ({
+                      id: job.id,
+                      title: job.title,
+                      company_name: (job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name,
+                      location: job.location,
+                      formatted_address: job.formatted_address,
+                      latitude: job.latitude,
+                      longitude: job.longitude,
+                      employment_type: job.employment_type,
+                      work_type: job.work_type,
+                      salary_min: job.salary_min,
+                      salary_max: job.salary_max
+                    }))}
+                    selectedJobId={selectedJobId}
+                    onJobSelect={(job) => {
+                      setSelectedJobId(job.id)
+                      // Scroll to the job card
+                      const jobCard = document.querySelector(`[data-job-id="${job.id}"]`)
+                      if (jobCard) {
+                        jobCard.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                      }
+                    }}
+                  />
                 </CardContent>
               </Card>
             </div>

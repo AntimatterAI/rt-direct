@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getCurrentUser, getUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { geocodeAddress, getPlacesAutocomplete } from '@/lib/google-maps'
 import { Briefcase, MapPin, DollarSign, Clock, Save, Plus, X, Search } from 'lucide-react'
 
 export default function PostJobPage() {
@@ -21,14 +22,18 @@ export default function PostJobPage() {
 
   // Location search state
   const [locationSearch, setLocationSearch] = useState('')
-  const [filteredLocations, setFilteredLocations] = useState<string[]>([])
+  const [filteredLocations, setFilteredLocations] = useState<any[]>([])
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [isGeocodingLocation, setIsGeocodingLocation] = useState(false)
 
   // Job form data
   const [jobData, setJobData] = useState({
     title: '',
     company_name: '',
     location: '',
+    formatted_address: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
     work_type: 'on-site',
     employment_type: 'contract',
     experience_level: 'Mid-level',
@@ -159,20 +164,58 @@ export default function PostJobPage() {
     loadUserProfile()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Smart location search
+  // Smart location search with Google Places API
   useEffect(() => {
-    if (locationSearch.length > 0) {
-      const filtered = usLocationsDatabase
-        .filter(location => 
-          location.toLowerCase().includes(locationSearch.toLowerCase())
-        )
-        .slice(0, 8) // Limit to 8 results
-      setFilteredLocations(filtered)
-      setShowLocationDropdown(true)
-    } else {
-      setFilteredLocations([])
-      setShowLocationDropdown(false)
+    const searchLocations = async () => {
+      if (locationSearch.length < 2) {
+        setFilteredLocations([])
+        setShowLocationDropdown(false)
+        return
+      }
+
+      try {
+        // Try Google Places API first
+        const placesResults = await getPlacesAutocomplete(locationSearch, ['(cities)'])
+        
+        if (placesResults.length > 0) {
+          setFilteredLocations(placesResults.slice(0, 8))
+          setShowLocationDropdown(true)
+          return
+        }
+
+        // Fallback to static database if Places API fails
+        const staticFiltered = usLocationsDatabase
+          .filter(location => 
+            location.toLowerCase().includes(locationSearch.toLowerCase())
+          )
+          .slice(0, 8)
+          .map(location => ({
+            description: location,
+            place_id: `static_${location.replace(/\s+/g, '_')}`
+          }))
+        
+        setFilteredLocations(staticFiltered)
+        setShowLocationDropdown(true)
+      } catch (error) {
+        console.error('Location search error:', error)
+        // Fallback to static database
+        const staticFiltered = usLocationsDatabase
+          .filter(location => 
+            location.toLowerCase().includes(locationSearch.toLowerCase())
+          )
+          .slice(0, 8)
+          .map(location => ({
+            description: location,
+            place_id: `static_${location.replace(/\s+/g, '_')}`
+          }))
+        
+        setFilteredLocations(staticFiltered)
+        setShowLocationDropdown(true)
+      }
     }
+
+    const timeoutId = setTimeout(searchLocations, 300) // Debounce
+    return () => clearTimeout(timeoutId)
   }, [locationSearch])
 
   // Auto-set pay type based on employment type
@@ -224,10 +267,29 @@ export default function PostJobPage() {
     }
   }
 
-  const handleLocationSelect = (location: string) => {
-    setJobData(prev => ({ ...prev, location }))
+  const handleLocationSelect = async (locationData: any) => {
+    const locationText = locationData.description
+    setJobData(prev => ({ ...prev, location: locationText }))
     setLocationSearch('')
     setShowLocationDropdown(false)
+    
+    // Geocode the selected location to get coordinates
+    setIsGeocodingLocation(true)
+    try {
+      const geocodeResult = await geocodeAddress(locationText)
+      if (geocodeResult) {
+        setJobData(prev => ({
+          ...prev,
+          formatted_address: geocodeResult.formatted_address,
+          latitude: geocodeResult.latitude,
+          longitude: geocodeResult.longitude
+        }))
+      }
+    } catch (error) {
+      console.error('Error geocoding location:', error)
+    } finally {
+      setIsGeocodingLocation(false)
+    }
   }
 
   const addRequirement = () => {
@@ -393,6 +455,9 @@ export default function PostJobPage() {
         employer_id: profile.id,
         title: jobData.title.trim(),
         location: jobData.location,
+        formatted_address: jobData.formatted_address || null,
+        latitude: jobData.latitude,
+        longitude: jobData.longitude,
         work_type: jobData.work_type,
         employment_type: jobData.employment_type,
         experience_required: experienceMap[jobData.experience_level] || 0,
@@ -534,31 +599,37 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
                       value={locationSearch || jobData.location}
                       onChange={(e) => {
                         setLocationSearch(e.target.value)
-                        if (!e.target.value) {
-                          setJobData(prev => ({ ...prev, location: '' }))
-                        }
-                      }}
-                      onFocus={() => setLocationSearch(jobData.location)}
-                      placeholder="Search for city, state..."
-                      className="pl-10"
-                    />
-                    {showLocationDropdown && filteredLocations.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                        {filteredLocations.map((location, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                            onClick={() => handleLocationSelect(location)}
-                          >
-                            <div className="flex items-center">
-                              <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                              {location}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                                                 if (!e.target.value) {
+                           setJobData(prev => ({ ...prev, location: '', formatted_address: '', latitude: null, longitude: null }))
+                         }
+                       }}
+                       onFocus={() => setLocationSearch(jobData.location)}
+                       placeholder="Search for city, state..."
+                       className="pl-10"
+                       disabled={isGeocodingLocation}
+                     />
+                     {isGeocodingLocation && (
+                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                         <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                       </div>
+                     )}
+                                         {showLocationDropdown && filteredLocations.length > 0 && (
+                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                         {filteredLocations.map((location, index) => (
+                           <button
+                             key={location.place_id || index}
+                             type="button"
+                             className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                             onClick={() => handleLocationSelect(location)}
+                           >
+                             <div className="flex items-center">
+                               <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                               {location.description}
+                             </div>
+                           </button>
+                         ))}
+                       </div>
+                     )}
                   </div>
                 </div>
 
