@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Link from 'next/link'
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
@@ -13,7 +14,8 @@ if (typeof window !== 'undefined') {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, MapPin, Clock, Shield, TrendingUp, Stethoscope, Activity, Award, Heart, ArrowRight, CheckCircle, Building } from 'lucide-react'
+import { Users, MapPin, Clock, Shield, TrendingUp, Stethoscope, Activity, Award, Heart, ArrowRight, CheckCircle, Building, Menu, X } from 'lucide-react'
+import { useState } from 'react'
 
 export default function HomePage() {
   const router = useRouter()
@@ -21,6 +23,7 @@ export default function HomePage() {
   const featuresRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     // Only run animations if we're on the home page and elements exist
@@ -137,8 +140,111 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Heart className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">RT Direct</span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link href="/jobs" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                Browse Jobs
+              </Link>
+              <Link href="/about" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                About
+              </Link>
+              <Link href="/contact" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                Contact
+              </Link>
+            </nav>
+
+            {/* Desktop Auth Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                className="text-gray-600 hover:text-blue-600"
+                onClick={() => router.push('/auth/signin')}
+              >
+                Sign In
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                onClick={() => router.push('/auth/signup')}
+              >
+                Get Started
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 text-gray-600 hover:text-blue-600"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-100">
+              <div className="flex flex-col space-y-4">
+                <Link 
+                  href="/jobs" 
+                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Browse Jobs
+                </Link>
+                <Link 
+                  href="/about" 
+                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link 
+                  href="/contact" 
+                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100">
+                  <Button 
+                    variant="ghost" 
+                    className="text-gray-600 hover:text-blue-600 justify-start"
+                    onClick={() => {
+                      router.push('/auth/signin')
+                      setIsMobileMenuOpen(false)
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
+                    onClick={() => {
+                      router.push('/auth/signup')
+                      setIsMobileMenuOpen(false)
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
       {/* Hero Section */}
-      <section ref={heroRef} className="relative pt-32 pb-20 px-4 overflow-hidden">
+      <section ref={heroRef} className="relative pt-20 pb-20 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="hero-title">
             <Badge variant="secondary" className="mb-6 text-blue-600 bg-blue-100 hover:bg-blue-200">
