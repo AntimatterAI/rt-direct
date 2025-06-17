@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+// import { Alert, AlertDescription } from '@/components/ui/alert'
 import { getCurrentUser, getUserProfile, signOut } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/types'
@@ -32,13 +32,14 @@ export default function DashboardPage() {
         try {
           const userProfile = await getUserProfile()
           setProfile(userProfile)
-        } catch (profileError: any) {
+        } catch (profileError: unknown) {
           console.error('Error loading profile:', profileError)
           
           // Check if it's a missing profile error (PGRST116)
-          if (profileError?.code === 'PGRST116' || 
-              profileError?.message?.includes('multiple (or no) rows returned') ||
-              profileError?.message?.includes('JSON object requested')) {
+          const error = profileError as { code?: string; message?: string }
+          if (error?.code === 'PGRST116' || 
+              error?.message?.includes('multiple (or no) rows returned') ||
+              error?.message?.includes('JSON object requested')) {
             setProfileError('Your profile needs to be set up. Please create your profile to continue.')
           } else {
             // For other errors, redirect to signin
@@ -159,16 +160,14 @@ export default function DashboardPage() {
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
               <CardDescription>
-                To continue using RT Direct, please select your role and we'll set up your profile.
+                To continue using RT Direct, please select your role and we&apos;ll set up your profile.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {profileError}
-                </AlertDescription>
-              </Alert>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex items-center space-x-2">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-blue-800">{profileError}</span>
+              </div>
 
               <div className="space-y-3">
                 <Button

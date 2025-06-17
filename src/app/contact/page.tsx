@@ -34,7 +34,7 @@ export default function ContactPage() {
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 2000))
     
-    alert('Thank you for your message! We\'ll get back to you soon.')
+    alert('Thank you for your message! We&apos;ll get back to you soon.')
     setFormData({ name: '', email: '', subject: '', message: '' })
     setIsSubmitting(false)
   }
@@ -92,7 +92,7 @@ export default function ContactPage() {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Have questions about RT Direct? Need support with your account? 
-            We're here to help you succeed in your career journey.
+            We&apos;re here to help you succeed in your career journey.
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export default function ContactPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Send us a message</CardTitle>
               <CardDescription>
-                Fill out the form below and we'll get back to you within 24 hours.
+                Fill out the form below and we&apos;ll get back to you within 24 hours.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -243,7 +243,7 @@ export default function ContactPage() {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium text-gray-900 mb-1">How do I create an account?</h4>
-                  <p className="text-sm text-gray-600">Click "Get Started" and choose whether you're a technologist or employer.</p>
+                  <p className="text-sm text-gray-600">Click &ldquo;Get Started&rdquo; and choose whether you&apos;re a technologist or employer.</p>
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 mb-1">Is RT Direct free to use?</h4>

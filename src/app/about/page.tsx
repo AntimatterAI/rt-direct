@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Heart, Users, Target, Award } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -61,7 +61,7 @@ export default function AboutPage() {
             About RT Direct
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            We're dedicated to connecting skilled radiologic technologists with exceptional healthcare facilities, 
+            We&apos;re dedicated to connecting skilled radiologic technologists with exceptional healthcare facilities, 
             creating opportunities that advance careers and improve patient care.
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 leading-relaxed">
-                We're committed to transparency, excellence, and integrity in every interaction. Our platform 
+                We&apos;re committed to transparency, excellence, and integrity in every interaction. Our platform 
                 is built on trust, ensuring that both job seekers and employers have access to accurate 
                 information and genuine opportunities that align with their goals and values.
               </p>
@@ -133,7 +133,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold mb-4">For Healthcare</h3>
               <p className="text-gray-600">
-                Ultimately, we're improving patient care by ensuring healthcare facilities are 
+                Ultimately, we&apos;re improving patient care by ensuring healthcare facilities are 
                 staffed with skilled, passionate professionals who love what they do.
               </p>
             </div>
