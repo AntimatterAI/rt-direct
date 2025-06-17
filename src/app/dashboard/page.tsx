@@ -4,13 +4,18 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { getCurrentUser, getUserProfile, signOut } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 import { Profile } from '@/types'
+import { AlertCircle, User, Building } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false)
 
   useEffect(() => {
     // Set page title for SEO
@@ -24,10 +29,25 @@ export default function DashboardPage() {
           return
         }
 
-        const userProfile = await getUserProfile()
-        setProfile(userProfile)
+        try {
+          const userProfile = await getUserProfile()
+          setProfile(userProfile)
+        } catch (profileError: any) {
+          console.error('Error loading profile:', profileError)
+          
+          // Check if it's a missing profile error (PGRST116)
+          if (profileError?.code === 'PGRST116' || 
+              profileError?.message?.includes('multiple (or no) rows returned') ||
+              profileError?.message?.includes('JSON object requested')) {
+            setProfileError('Your profile needs to be set up. Please create your profile to continue.')
+          } else {
+            // For other errors, redirect to signin
+            router.push('/auth/signin')
+            return
+          }
+        }
       } catch (error) {
-        console.error('Error loading profile:', error)
+        console.error('Error in loadProfile:', error)
         router.push('/auth/signin')
       } finally {
         setIsLoading(false)
@@ -46,12 +66,159 @@ export default function DashboardPage() {
     }
   }
 
+  const createBasicProfile = async (role: 'tech' | 'employer') => {
+    setIsCreatingProfile(true)
+    try {
+      const user = await getCurrentUser()
+      if (!user) {
+        throw new Error('No authenticated user found')
+      }
+
+      // Create basic profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email || '',
+          role: role,
+          first_name: '',
+          last_name: '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError)
+        throw profileError
+      }
+
+      // Create role-specific profile
+      if (role === 'tech') {
+        const { error: techError } = await supabase
+          .from('tech_profiles')
+          .insert({
+            profile_id: user.id,
+            experience_years: 0,
+            certifications: [],
+            specializations: [],
+            preferred_shifts: [],
+            travel_radius: 50,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+        if (techError) {
+          console.error('Error creating tech profile:', techError)
+        }
+      } else {
+        const { error: employerError } = await supabase
+          .from('employer_profiles')
+          .insert({
+            profile_id: user.id,
+            company_name: 'Company Name',
+            company_size: '1-10 employees',
+            industry: 'Healthcare',
+            verified: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+
+        if (employerError) {
+          console.error('Error creating employer profile:', employerError)
+        }
+      }
+
+      // Reload the page to fetch the new profile
+      window.location.reload()
+
+    } catch (error) {
+      console.error('Error creating profile:', error)
+      alert('Failed to create profile. Please try again or contact support.')
+    } finally {
+      setIsCreatingProfile(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Loading...</h2>
           <p className="text-gray-600">Setting up your dashboard</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show profile setup if profile doesn't exist
+  if (profileError && !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md mx-auto">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
+              <CardDescription>
+                To continue using RT Direct, please select your role and we'll set up your profile.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {profileError}
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-3">
+                <Button
+                  className="w-full h-auto py-4 px-6"
+                  variant="outline"
+                  onClick={() => createBasicProfile('tech')}
+                  disabled={isCreatingProfile}
+                >
+                  <div className="flex items-center space-x-3">
+                    <User className="w-6 h-6" />
+                    <div className="text-left">
+                      <div className="font-semibold">Radiologic Technologist</div>
+                      <div className="text-sm text-gray-600">Looking for job opportunities</div>
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  className="w-full h-auto py-4 px-6"
+                  variant="outline"
+                  onClick={() => createBasicProfile('employer')}
+                  disabled={isCreatingProfile}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Building className="w-6 h-6" />
+                    <div className="text-left">
+                      <div className="font-semibold">Healthcare Employer</div>
+                      <div className="text-sm text-gray-600">Posting job opportunities</div>
+                    </div>
+                  </div>
+                </Button>
+              </div>
+
+              <div className="pt-4 border-t">
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </Button>
+              </div>
+
+              {isCreatingProfile && (
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Creating your profile...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -77,7 +244,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 dark:text-gray-300">
-                Welcome, {profile.first_name}!
+                Welcome, {profile.first_name || 'User'}!
               </span>
               <Button variant="outline" onClick={handleSignOut}>
                 Sign Out
