@@ -119,6 +119,9 @@ export interface Database {
           salary_min?: number
           salary_max?: number
           location: string
+          formatted_address?: string
+          latitude?: number
+          longitude?: number
           work_type: 'on-site' | 'remote' | 'hybrid'
           employment_type: 'full-time' | 'part-time' | 'contract' | 'per-diem'
           experience_level?: string
@@ -146,6 +149,9 @@ export interface Database {
           salary_min?: number
           salary_max?: number
           location: string
+          formatted_address?: string
+          latitude?: number
+          longitude?: number
           work_type: 'on-site' | 'remote' | 'hybrid'
           employment_type: 'full-time' | 'part-time' | 'contract' | 'per-diem'
           experience_level?: string
@@ -167,6 +173,9 @@ export interface Database {
           salary_min?: number
           salary_max?: number
           location?: string
+          formatted_address?: string
+          latitude?: number
+          longitude?: number
           work_type?: 'on-site' | 'remote' | 'hybrid'
           employment_type?: 'full-time' | 'part-time' | 'contract' | 'per-diem'
           shift_type?: string[]
