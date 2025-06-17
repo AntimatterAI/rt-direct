@@ -543,7 +543,7 @@ export default function EmployerProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
                 className="h-20 flex flex-col items-center justify-center space-y-2"
@@ -559,14 +559,6 @@ export default function EmployerProfilePage() {
               >
                 <Briefcase className="w-6 h-6 text-green-600" />
                 <span>Manage Jobs</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center space-y-2"
-                onClick={() => router.push('/employers/candidates')}
-              >
-                <Users className="w-6 h-6 text-purple-600" />
-                <span>View Candidates</span>
               </Button>
             </div>
           </CardContent>

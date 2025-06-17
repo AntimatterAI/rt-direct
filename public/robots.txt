@@ -7,7 +7,6 @@ Allow: /auth/signin
 # Block private/admin areas
 Disallow: /dashboard
 Disallow: /profile
-Disallow: /employers
 
 # Sitemap location
 Sitemap: https://rt-direct.vercel.app/sitemap.xml

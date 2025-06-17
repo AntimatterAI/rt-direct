@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getCurrentUser, getUserProfile, signOut } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/types'
-import { AlertCircle, User, Building } from 'lucide-react'
+import { AlertCircle, User, Building, Loader2 } from 'lucide-react'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [isCreatingProfile, setIsCreatingProfile] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   useEffect(() => {
     // Set page title for SEO
@@ -59,11 +60,13 @@ export default function DashboardPage() {
   }, [router])
 
   const handleSignOut = async () => {
+    setIsSigningOut(true)
     try {
       await signOut()
       router.push('/')
     } catch (error) {
       console.error('Error signing out:', error)
+      setIsSigningOut(false)
     }
   }
 
@@ -245,8 +248,15 @@ export default function DashboardPage() {
               <span className="text-sm text-gray-600 dark:text-gray-300">
                 Welcome, {profile.first_name || 'User'}!
               </span>
-              <Button variant="outline" onClick={handleSignOut}>
-                Sign Out
+              <Button variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
+                {isSigningOut ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing Out...
+                  </>
+                ) : (
+                  'Sign Out'
+                )}
               </Button>
             </div>
           </div>
