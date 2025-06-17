@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getCurrentUser, getUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
@@ -33,7 +33,7 @@ export default function EmployerJobsPage() {
   useEffect(() => {
     document.title = 'Manage Jobs | RT Direct - Employer Dashboard'
     loadProfileAndJobs()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadProfileAndJobs() {
     try {
