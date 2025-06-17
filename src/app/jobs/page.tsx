@@ -20,7 +20,7 @@ export default function JobsPage() {
   const [locationFilter, setLocationFilter] = useState('')
   const [workTypeFilter, setWorkTypeFilter] = useState<WorkType | 'all'>('all')
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState<EmploymentType | 'all'>('all')
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
+  const [selectedJobId, setSelectedJobId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     // Set page title for SEO
@@ -195,7 +195,7 @@ export default function JobsPage() {
                     }`}
                     onClick={() => router.push(`/jobs/${job.id}`)}
                     onMouseEnter={() => setSelectedJobId(job.id)}
-                    onMouseLeave={() => setSelectedJobId(null)}
+                    onMouseLeave={() => setSelectedJobId(undefined)}
                   >
                     <CardHeader>
                       <div className="flex justify-between items-start">
