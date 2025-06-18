@@ -36,9 +36,11 @@ export default function JobsPage() {
         .from('jobs')
         .select(`
           *,
-          employer_profiles!inner (
-            company_name,
-            logo_url
+          profiles!inner (
+            employer_profiles!inner (
+              company_name,
+              logo_url
+            )
           )
         `)
         .eq('status', 'active')
@@ -206,7 +208,7 @@ export default function JobsPage() {
                           <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
                             <div className="flex items-center">
                               <Building className="w-4 h-4 mr-1" />
-                              {(job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name || 'Company Name'}
+                              {(job as Job & { profiles?: { employer_profiles?: { company_name: string } } }).profiles?.employer_profiles?.company_name || 'Company Name'}
                             </div>
                             <div className="flex items-center">
                               <MapPin className="w-4 h-4 mr-1" />
@@ -300,7 +302,7 @@ export default function JobsPage() {
                     jobs={filteredJobs.map(job => ({
                       id: job.id,
                       title: job.title,
-                      company_name: (job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name,
+                      company_name: (job as Job & { profiles?: { employer_profiles?: { company_name: string } } }).profiles?.employer_profiles?.company_name,
                       location: job.location,
                       employment_type: job.employment_type,
                       work_type: job.work_type,

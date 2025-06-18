@@ -167,7 +167,7 @@ function toRadians(degrees: number): number {
 }
 
 // Get places autocomplete suggestions using the newer AutocompleteSuggestion API
-export async function getPlacesAutocomplete(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
+export async function getPlacesAutocomplete(input: string, types: string[] = ['establishment', 'geocode']): Promise<{ description: string; place_id: string }[]> {
   if (!GOOGLE_MAPS_API_KEY) {
     console.warn('Google Maps API key not configured')
     return []
@@ -219,7 +219,7 @@ export async function getPlacesAutocomplete(input: string, types: string[] = ['(
 }
 
 // Legacy autocomplete function using the deprecated AutocompleteService
-function getPlacesAutocompleteLegacy(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
+function getPlacesAutocompleteLegacy(input: string, types: string[] = ['establishment', 'geocode']): Promise<{ description: string; place_id: string }[]> {
   return new Promise((resolve) => {
     try {
       const service = new window.google.maps.places.AutocompleteService()

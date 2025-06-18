@@ -46,7 +46,6 @@ export default function JobMap({ jobs, onJobSelect, selectedJobId, className = '
         return
       }
 
-      const script = document.createElement('script')
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE'
       
       if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
@@ -54,13 +53,30 @@ export default function JobMap({ jobs, onJobSelect, selectedJobId, className = '
         return
       }
 
-      // Set up callback function
-      window.initGoogleMaps = () => {
-        setIsLoaded(true)
-        delete window.initGoogleMaps // Clean up
+      // Check if script is already loading/loaded
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')
+      if (existingScript) {
+        // Script already exists, just wait for it to load
+        const checkLoaded = () => {
+          if (window.google && window.google.maps) {
+            setIsLoaded(true)
+          } else {
+            setTimeout(checkLoaded, 100)
+          }
+        }
+        checkLoaded()
+        return
       }
 
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps`
+      // Set up callback function with unique name
+      const callbackName = `initGoogleMapsJobMap_${Date.now()}`
+      window[callbackName as keyof Window] = (() => {
+        setIsLoaded(true)
+        delete window[callbackName as keyof Window] // Clean up
+      }) as any
+
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=${callbackName}`
       script.async = true
       script.defer = true
       script.onerror = () => console.error('Failed to load Google Maps API')

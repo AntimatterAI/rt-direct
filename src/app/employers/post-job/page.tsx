@@ -169,7 +169,6 @@ export default function PostJobPage() {
         return
       }
 
-      const script = document.createElement('script')
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE'
       
       if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
@@ -177,13 +176,30 @@ export default function PostJobPage() {
         return
       }
 
-      // Set up callback function
-      window.initGoogleMaps = () => {
-        setIsGoogleMapsLoaded(true)
-        delete window.initGoogleMaps // Clean up
+      // Check if script is already loading/loaded
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')
+      if (existingScript) {
+        // Script already exists, just wait for it to load
+        const checkLoaded = () => {
+          if (window.google && window.google.maps) {
+            setIsGoogleMapsLoaded(true)
+          } else {
+            setTimeout(checkLoaded, 100)
+          }
+        }
+        checkLoaded()
+        return
       }
 
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps`
+      // Set up callback function with unique name
+      const callbackName = `initGoogleMapsPostJob_${Date.now()}`
+      window[callbackName as keyof Window] = (() => {
+        setIsGoogleMapsLoaded(true)
+        delete window[callbackName as keyof Window] // Clean up
+      }) as any
+
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=${callbackName}`
       script.async = true
       script.defer = true
       script.onerror = () => console.error('Failed to load Google Maps API')
@@ -210,7 +226,7 @@ export default function PostJobPage() {
       try {
         // Try Google Places API first if loaded
         if (isGoogleMapsLoaded) {
-          const placesResults = await getPlacesAutocomplete(locationSearch, ['(cities)'])
+          const placesResults = await getPlacesAutocomplete(locationSearch, ['establishment', 'geocode'])
           
           if (placesResults.length > 0) {
             setFilteredLocations(placesResults.slice(0, 8))
