@@ -193,6 +193,7 @@ export default function PostJobPage() {
 
       // Set up callback function with unique name
       const callbackName = `initGoogleMapsPostJob_${Date.now()}`
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window[callbackName as keyof Window] = (() => {
         setIsGoogleMapsLoaded(true)
         delete window[callbackName as keyof Window] // Clean up
