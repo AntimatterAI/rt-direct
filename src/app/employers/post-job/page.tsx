@@ -19,6 +19,7 @@ export default function PostJobPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [profile, setProfile] = useState<{ id: string; email: string; role: string } | null>(null)
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
 
   // Location search state
   const [locationSearch, setLocationSearch] = useState('')
@@ -160,6 +161,34 @@ export default function PostJobPage() {
     'Relocation Assistance'
   ]
 
+  // Load Google Maps API
+  useEffect(() => {
+    const loadGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        setIsGoogleMapsLoaded(true)
+        return
+      }
+
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE'
+      
+      if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+        console.warn('Google Maps API key not configured. Using fallback location search.')
+        return
+      }
+
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry`
+      script.async = true
+      script.defer = true
+      script.onload = () => setIsGoogleMapsLoaded(true)
+      script.onerror = () => console.error('Failed to load Google Maps API')
+      
+      document.head.appendChild(script)
+    }
+
+    loadGoogleMaps()
+  }, [])
+
   useEffect(() => {
     loadUserProfile()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -174,16 +203,18 @@ export default function PostJobPage() {
       }
 
       try {
-        // Try Google Places API first
-        const placesResults = await getPlacesAutocomplete(locationSearch, ['(cities)'])
-        
-        if (placesResults.length > 0) {
-          setFilteredLocations(placesResults.slice(0, 8))
-          setShowLocationDropdown(true)
-          return
+        // Try Google Places API first if loaded
+        if (isGoogleMapsLoaded) {
+          const placesResults = await getPlacesAutocomplete(locationSearch, ['(cities)'])
+          
+          if (placesResults.length > 0) {
+            setFilteredLocations(placesResults.slice(0, 8))
+            setShowLocationDropdown(true)
+            return
+          }
         }
 
-        // Fallback to static database if Places API fails
+        // Fallback to static database if Places API fails or not loaded
         const staticFiltered = usLocationsDatabase
           .filter(location => 
             location.toLowerCase().includes(locationSearch.toLowerCase())
@@ -216,7 +247,7 @@ export default function PostJobPage() {
 
     const timeoutId = setTimeout(searchLocations, 300) // Debounce
     return () => clearTimeout(timeoutId)
-  }, [locationSearch]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [locationSearch, isGoogleMapsLoaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-set pay type based on employment type
   useEffect(() => {
@@ -273,22 +304,24 @@ export default function PostJobPage() {
     setLocationSearch('')
     setShowLocationDropdown(false)
     
-    // Geocode the selected location to get coordinates
-    setIsGeocodingLocation(true)
-    try {
-      const geocodeResult = await geocodeAddress(locationText)
-      if (geocodeResult) {
-        setJobData(prev => ({
-          ...prev,
-          formatted_address: geocodeResult.formatted_address,
-          latitude: geocodeResult.latitude,
-          longitude: geocodeResult.longitude
-        }))
+    // Only geocode if using real Google Places result and Maps API is loaded
+    if (isGoogleMapsLoaded && !locationData.place_id.startsWith('static_')) {
+      setIsGeocodingLocation(true)
+      try {
+        const geocodeResult = await geocodeAddress(locationText)
+        if (geocodeResult) {
+          setJobData(prev => ({
+            ...prev,
+            formatted_address: geocodeResult.formatted_address,
+            latitude: geocodeResult.latitude,
+            longitude: geocodeResult.longitude
+          }))
+        }
+      } catch (error) {
+        console.error('Error geocoding location:', error)
+      } finally {
+        setIsGeocodingLocation(false)
       }
-    } catch (error) {
-      console.error('Error geocoding location:', error)
-    } finally {
-      setIsGeocodingLocation(false)
     }
   }
 
