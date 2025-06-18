@@ -19,81 +19,100 @@ export interface MapBounds {
   west: number
 }
 
-// Geocode an address to get coordinates
+// Geocode an address to get coordinates using Google Maps JavaScript API
 export async function geocodeAddress(address: string): Promise<LocationData | null> {
   if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
     console.warn('Google Maps API key not configured')
     return null
   }
 
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
-    )
-    
-    const data = await response.json()
-    
-    if (data.status === 'OK' && data.results.length > 0) {
-      const result = data.results[0]
-      const location = result.geometry.location
-      
-      // Extract city and state from address components
-      const addressComponents = result.address_components
-      const city = addressComponents.find((comp: { types: string[] }) => comp.types.includes('locality'))?.long_name || ''
-      const state = addressComponents.find((comp: { types: string[] }) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
-      const country = addressComponents.find((comp: { types: string[] }) => comp.types.includes('country'))?.long_name || ''
-      
-      return {
-        formatted_address: result.formatted_address,
-        latitude: location.lat,
-        longitude: location.lng,
-        city,
-        state,
-        country
-      }
-    }
-    
+  // Check if Google Maps API is loaded
+  if (!window.google || !window.google.maps) {
+    console.warn('Google Maps API not loaded')
     return null
+  }
+
+  try {
+    const geocoder = new window.google.maps.Geocoder()
+    
+    return new Promise((resolve) => {
+      geocoder.geocode(
+        { address: address },
+        (results, status) => {
+          if (status === window.google.maps.GeocoderStatus.OK && results && results.length > 0) {
+            const result = results[0]
+            const location = result.geometry.location
+            
+            // Extract city and state from address components
+            const addressComponents = result.address_components
+            const city = addressComponents.find((comp: google.maps.GeocoderAddressComponent) => comp.types.includes('locality'))?.long_name || ''
+            const state = addressComponents.find((comp: google.maps.GeocoderAddressComponent) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
+            const country = addressComponents.find((comp: google.maps.GeocoderAddressComponent) => comp.types.includes('country'))?.long_name || ''
+            
+            resolve({
+              formatted_address: result.formatted_address,
+              latitude: location.lat(),
+              longitude: location.lng(),
+              city,
+              state,
+              country
+            })
+          } else {
+            resolve(null)
+          }
+        }
+      )
+    })
   } catch (error) {
     console.error('Geocoding error:', error)
     return null
   }
 }
 
-// Reverse geocode coordinates to get address
+// Reverse geocode coordinates to get address using Google Maps JavaScript API
 export async function reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
   if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
     console.warn('Google Maps API key not configured')
     return null
   }
 
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`
-    )
-    
-    const data = await response.json()
-    
-    if (data.status === 'OK' && data.results.length > 0) {
-      const result = data.results[0]
-      const location = result.geometry.location
-      
-      const addressComponents = result.address_components
-      const city = addressComponents.find((comp: { types: string[] }) => comp.types.includes('locality'))?.long_name || ''
-      const state = addressComponents.find((comp: { types: string[] }) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
-      const country = addressComponents.find((comp: { types: string[] }) => comp.types.includes('country'))?.long_name || ''
-      
-      return {
-        formatted_address: result.formatted_address,
-        latitude: location.lat,
-        longitude: location.lng,
-        city,
-        state,
-        country
-      }
-    }
-    
+  // Check if Google Maps API is loaded
+  if (!window.google || !window.google.maps) {
+    console.warn('Google Maps API not loaded')
     return null
+  }
+
+  try {
+    const geocoder = new window.google.maps.Geocoder()
+    const latLng = new window.google.maps.LatLng(lat, lng)
+    
+    return new Promise((resolve) => {
+      geocoder.geocode(
+        { location: latLng },
+        (results, status) => {
+          if (status === window.google.maps.GeocoderStatus.OK && results && results.length > 0) {
+            const result = results[0]
+            const location = result.geometry.location
+            
+            const addressComponents = result.address_components
+            const city = addressComponents.find((comp: google.maps.GeocoderAddressComponent) => comp.types.includes('locality'))?.long_name || ''
+            const state = addressComponents.find((comp: google.maps.GeocoderAddressComponent) => comp.types.includes('administrative_area_level_1'))?.short_name || ''
+            const country = addressComponents.find((comp: google.maps.GeocoderAddressComponent) => comp.types.includes('country'))?.long_name || ''
+            
+            resolve({
+              formatted_address: result.formatted_address,
+              latitude: location.lat(),
+              longitude: location.lng(),
+              city,
+              state,
+              country
+            })
+          } else {
+            resolve(null)
+          }
+        }
+      )
+    })
   } catch (error) {
     console.error('Reverse geocoding error:', error)
     return null
@@ -146,25 +165,42 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180)
 }
 
-// Get places autocomplete suggestions
+// Get places autocomplete suggestions using Google Maps JavaScript API
 export async function getPlacesAutocomplete(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
   if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
     console.warn('Google Maps API key not configured')
     return []
   }
 
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=${types.join('|')}&componentRestrictions=country:us&key=${GOOGLE_MAPS_API_KEY}`
-    )
-    
-    const data = await response.json()
-    
-    if (data.status === 'OK') {
-      return data.predictions
-    }
-    
+  // Check if Google Maps API is loaded
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    console.warn('Google Maps API not loaded')
     return []
+  }
+
+  try {
+    // Use the Google Maps Places AutocompleteService
+    const service = new window.google.maps.places.AutocompleteService()
+    
+    return new Promise((resolve) => {
+      service.getPlacePredictions(
+        {
+          input: input,
+          types: types,
+          componentRestrictions: { country: 'us' }
+        },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            resolve(predictions.map(prediction => ({
+              description: prediction.description,
+              place_id: prediction.place_id
+            })))
+          } else {
+            resolve([])
+          }
+        }
+      )
+    })
   } catch (error) {
     console.error('Places autocomplete error:', error)
     return []
