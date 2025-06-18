@@ -1,7 +1,6 @@
 // Google Maps API utilities
-// TODO: Replace with your actual Google Maps API key from Google Cloud Console
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE'
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyBOovP323EA7FE_hJphrq1cHxY_HZo_mII'
 
 export interface LocationData {
   formatted_address: string
@@ -19,9 +18,11 @@ export interface MapBounds {
   west: number
 }
 
+
+
 // Geocode an address to get coordinates using Google Maps JavaScript API
 export async function geocodeAddress(address: string): Promise<LocationData | null> {
-  if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+  if (!GOOGLE_MAPS_API_KEY) {
     console.warn('Google Maps API key not configured')
     return null
   }
@@ -71,7 +72,7 @@ export async function geocodeAddress(address: string): Promise<LocationData | nu
 
 // Reverse geocode coordinates to get address using Google Maps JavaScript API
 export async function reverseGeocode(lat: number, lng: number): Promise<LocationData | null> {
-  if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+  if (!GOOGLE_MAPS_API_KEY) {
     console.warn('Google Maps API key not configured')
     return null
   }
@@ -167,7 +168,7 @@ function toRadians(degrees: number): number {
 
 // Get places autocomplete suggestions using the newer AutocompleteSuggestion API
 export async function getPlacesAutocomplete(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
-  if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+  if (!GOOGLE_MAPS_API_KEY) {
     console.warn('Google Maps API key not configured')
     return []
   }
@@ -190,10 +191,12 @@ export async function getPlacesAutocomplete(input: string, types: string[] = ['(
         }
         
         window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .then((response: any) => {
             if (response.suggestions) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               resolve(response.suggestions.map((suggestion: any) => ({
-                description: suggestion.placePrediction?.text?.text || suggestion.text,
+                description: suggestion.placePrediction?.text?.text || suggestion.text || '',
                 place_id: suggestion.placePrediction?.placeId || suggestion.placeId || ''
               })))
             } else {
