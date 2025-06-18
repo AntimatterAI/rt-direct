@@ -70,11 +70,10 @@ export default function JobMap({ jobs, onJobSelect, selectedJobId, className = '
 
       // Set up callback function with unique name
       const callbackName = `initGoogleMapsJobMap_${Date.now()}`
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window[callbackName as keyof Window] = (() => {
         setIsLoaded(true)
         delete window[callbackName as keyof Window] // Clean up
-      }) as any
+      }) as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const script = document.createElement('script')
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=${callbackName}`
