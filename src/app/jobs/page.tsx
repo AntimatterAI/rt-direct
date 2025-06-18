@@ -224,7 +224,7 @@ export default function JobsPage() {
                             <Badge className="bg-green-100 text-green-800">
                               {job.work_type}
                             </Badge>
-                            {job.shifts && job.shifts.slice(0, 2).map((shift: string) => (
+                            {job.shift_type && job.shift_type.slice(0, 2).map((shift: string) => (
                               <Badge key={shift} variant="outline" className="text-xs">
                                 {shift}
                               </Badge>
@@ -270,11 +270,9 @@ export default function JobsPage() {
                           View Details & Apply
                         </Button>
                         <div className="text-xs text-gray-500">
-                          {job.department && (
-                            <Badge variant="outline" className="text-xs">
-                              {job.department}
-                            </Badge>
-                          )}
+                          <Badge variant="outline" className="text-xs">
+                            {job.employment_type}
+                          </Badge>
                         </div>
                       </div>
                     </CardContent>
@@ -304,9 +302,6 @@ export default function JobsPage() {
                       title: job.title,
                       company_name: (job as Job & { employer_profiles?: { company_name: string } }).employer_profiles?.company_name,
                       location: job.location,
-                      formatted_address: job.formatted_address,
-                      latitude: job.latitude,
-                      longitude: job.longitude,
                       employment_type: job.employment_type,
                       work_type: job.work_type,
                       salary_min: job.salary_min,

@@ -112,25 +112,15 @@ export interface Database {
           id: string
           employer_id: string
           title: string
-          company_name?: string
           description: string
           requirements: string[]
           benefits: string[]
           salary_min?: number
           salary_max?: number
           location: string
-          formatted_address?: string
-          latitude?: number
-          longitude?: number
           work_type: 'on-site' | 'remote' | 'hybrid'
           employment_type: 'full-time' | 'part-time' | 'contract' | 'per-diem'
-          experience_level?: string
-          shifts?: string[]
           shift_type: string[]
-          department?: string
-          equipment?: string
-          contact_email?: string
-          application_deadline?: string
           experience_required: number
           posted_at: string
           expires_at?: string
@@ -142,25 +132,15 @@ export interface Database {
           id?: string
           employer_id: string
           title: string
-          company_name?: string
           description: string
           requirements?: string[]
           benefits?: string[]
           salary_min?: number
           salary_max?: number
           location: string
-          formatted_address?: string
-          latitude?: number
-          longitude?: number
           work_type: 'on-site' | 'remote' | 'hybrid'
           employment_type: 'full-time' | 'part-time' | 'contract' | 'per-diem'
-          experience_level?: string
-          shifts?: string[]
           shift_type?: string[]
-          department?: string
-          equipment?: string
-          contact_email?: string
-          application_deadline?: string
           experience_required?: number
           expires_at?: string
           status?: 'active' | 'closed' | 'draft'
@@ -173,9 +153,6 @@ export interface Database {
           salary_min?: number
           salary_max?: number
           location?: string
-          formatted_address?: string
-          latitude?: number
-          longitude?: number
           work_type?: 'on-site' | 'remote' | 'hybrid'
           employment_type?: 'full-time' | 'part-time' | 'contract' | 'per-diem'
           shift_type?: string[]

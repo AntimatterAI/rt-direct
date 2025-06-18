@@ -15,7 +15,6 @@ import {
   Building, 
   Briefcase, 
   Calendar, 
-  Mail, 
   ArrowLeft,
   Shield,
   Award,
@@ -23,29 +22,7 @@ import {
   Heart,
   Share2
 } from 'lucide-react'
-
-interface Job {
-  id: string
-  title: string
-  company_name: string
-  location: string
-  work_type: string
-  employment_type: string
-  experience_level: string
-  salary_min?: number
-  salary_max?: number
-  description: string
-  requirements: string[]
-  benefits: string[]
-  shifts: string[]
-  department?: string
-  equipment?: string
-  contact_email?: string
-  application_deadline?: string
-  status: string
-  created_at: string
-  employer_id: string
-}
+import { Job } from '@/types'
 
 interface EmployerProfile {
   company_name: string
@@ -233,7 +210,7 @@ export default function JobDetailPage() {
                     <div className="flex items-center space-x-4 text-lg text-gray-600 mb-4">
                       <div className="flex items-center space-x-2">
                         <Building className="w-5 h-5" />
-                        <span>{job.company_name}</span>
+                        <span>{employerProfile?.company_name || 'Company'}</span>
                         {employerProfile?.verified && (
                           <Badge className="bg-green-100 text-green-800 flex items-center space-x-1">
                             <Shield className="w-3 h-3" />
@@ -262,10 +239,6 @@ export default function JobDetailPage() {
                 <div className="flex flex-wrap gap-2 mb-6">
                   <Badge className="bg-blue-100 text-blue-800">{job.employment_type}</Badge>
                   <Badge className="bg-green-100 text-green-800">{job.work_type}</Badge>
-                  <Badge className="bg-purple-100 text-purple-800">{job.experience_level}</Badge>
-                  {job.department && (
-                    <Badge className="bg-orange-100 text-orange-800">{job.department}</Badge>
-                  )}
                 </div>
 
                 {!hasApplied ? (
@@ -305,19 +278,7 @@ export default function JobDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Equipment & Technology */}
-            {job.equipment && (
-              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle>Equipment & Technology</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                    {job.equipment}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+
 
             {/* Requirements */}
             {job.requirements && job.requirements.length > 0 && (
@@ -366,7 +327,7 @@ export default function JobDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Building className="w-5 h-5 text-green-600" />
-                    <span>About {job.company_name}</span>
+                    <span>About {employerProfile?.company_name || 'Company'}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -406,7 +367,7 @@ export default function JobDetailPage() {
             )}
 
             {/* Shifts */}
-            {job.shifts && job.shifts.length > 0 && (
+                          {job.shift_type && job.shift_type.length > 0 && (
               <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
@@ -416,7 +377,7 @@ export default function JobDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {job.shifts.map((shift, index) => (
+                    {job.shift_type.map((shift, index) => (
                       <div key={index} className="p-2 bg-orange-50 border border-orange-200 rounded text-sm">
                         {shift}
                       </div>
@@ -426,43 +387,7 @@ export default function JobDetailPage() {
               </Card>
             )}
 
-            {/* Application Deadline */}
-            {job.application_deadline && (
-              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="w-5 h-5 text-red-600" />
-                    <span>Application Deadline</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-semibold text-red-600">
-                    {formatDate(job.application_deadline)}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
 
-            {/* Contact Information */}
-            {job.contact_email && (
-              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Mail className="w-5 h-5 text-blue-600" />
-                    <span>Contact</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600 mb-2">Questions about this position?</p>
-                  <a 
-                    href={`mailto:${job.contact_email}`}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    {job.contact_email}
-                  </a>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ Enable these APIs in your Google Cloud Console:
 ### 5. **Add to Environment Variables**
 Add this to your `.env.local` file:
 ```bash
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyBOovP323EA7FE_hJphrq1cHxY_HZo_mII
 ```
 
 ## 🔧 **Features Enabled**

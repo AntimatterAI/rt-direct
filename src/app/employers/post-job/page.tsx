@@ -454,14 +454,9 @@ export default function PostJobPage() {
       const jobPayload = {
         employer_id: profile.id,
         title: jobData.title.trim(),
-        company_name: jobData.company_name || null,
         location: jobData.location,
-        formatted_address: jobData.formatted_address || null,
-        latitude: jobData.latitude,
-        longitude: jobData.longitude,
         work_type: jobData.work_type,
         employment_type: jobData.employment_type,
-        experience_level: jobData.experience_level,
         experience_required: experienceMap[jobData.experience_level] || 0,
         salary_min: salaryMin,
         salary_max: salaryMax,
@@ -471,10 +466,6 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
         requirements: jobData.requirements,
         benefits: jobData.benefits,
         shift_type: jobData.shifts,
-        department: jobData.department || null,
-        equipment: jobData.equipment || null,
-        contact_email: jobData.contact_email || null,
-        application_deadline: jobData.application_deadline || null,
         status: 'active'
       }
 
