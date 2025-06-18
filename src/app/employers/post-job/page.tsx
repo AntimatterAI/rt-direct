@@ -161,7 +161,7 @@ export default function PostJobPage() {
     'Relocation Assistance'
   ]
 
-  // Load Google Maps API
+  // Load Google Maps API for location search
   useEffect(() => {
     const loadGoogleMaps = () => {
       if (window.google && window.google.maps) {
@@ -169,18 +169,23 @@ export default function PostJobPage() {
         return
       }
 
+      const script = document.createElement('script')
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY_HERE'
       
       if (apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
-        console.warn('Google Maps API key not configured. Using fallback location search.')
+        console.warn('Google Maps API key not configured')
         return
       }
 
-      const script = document.createElement('script')
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry`
+      // Set up callback function
+      window.initGoogleMaps = () => {
+        setIsGoogleMapsLoaded(true)
+        delete window.initGoogleMaps // Clean up
+      }
+
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps`
       script.async = true
       script.defer = true
-      script.onload = () => setIsGoogleMapsLoaded(true)
       script.onerror = () => console.error('Failed to load Google Maps API')
       
       document.head.appendChild(script)

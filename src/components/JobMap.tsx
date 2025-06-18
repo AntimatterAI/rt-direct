@@ -54,10 +54,15 @@ export default function JobMap({ jobs, onJobSelect, selectedJobId, className = '
         return
       }
 
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry`
+      // Set up callback function
+      window.initGoogleMaps = () => {
+        setIsLoaded(true)
+        delete window.initGoogleMaps // Clean up
+      }
+
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&callback=initGoogleMaps`
       script.async = true
       script.defer = true
-      script.onload = () => setIsLoaded(true)
       script.onerror = () => console.error('Failed to load Google Maps API')
       
       document.head.appendChild(script)

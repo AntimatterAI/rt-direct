@@ -165,7 +165,7 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180)
 }
 
-// Get places autocomplete suggestions using Google Maps JavaScript API
+// Get places autocomplete suggestions using the newer AutocompleteSuggestion API
 export async function getPlacesAutocomplete(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
   if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
     console.warn('Google Maps API key not configured')
@@ -179,10 +179,48 @@ export async function getPlacesAutocomplete(input: string, types: string[] = ['(
   }
 
   try {
-    // Use the Google Maps Places AutocompleteService
-    const service = new window.google.maps.places.AutocompleteService()
-    
-    return new Promise((resolve) => {
+    // Try to use the newer AutocompleteSuggestion API if available
+    if (window.google.maps.places.AutocompleteSuggestion) {
+      // Use the newer API
+      return new Promise((resolve) => {
+        const request = {
+          input: input,
+          includedPrimaryTypes: types,
+          includedRegionCodes: ['us']
+        }
+        
+        window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request)
+          .then((response: any) => {
+            if (response.suggestions) {
+              resolve(response.suggestions.map((suggestion: any) => ({
+                description: suggestion.placePrediction?.text?.text || suggestion.text,
+                place_id: suggestion.placePrediction?.placeId || suggestion.placeId || ''
+              })))
+            } else {
+              resolve([])
+            }
+          })
+          .catch(() => {
+            // Fallback to old API if new one fails
+            resolve(getPlacesAutocompleteLegacy(input, types))
+          })
+      })
+    } else {
+      // Use legacy API as fallback
+      return getPlacesAutocompleteLegacy(input, types)
+    }
+  } catch (error) {
+    console.error('Places autocomplete error:', error)
+    return []
+  }
+}
+
+// Legacy autocomplete function using the deprecated AutocompleteService
+function getPlacesAutocompleteLegacy(input: string, types: string[] = ['(cities)']): Promise<{ description: string; place_id: string }[]> {
+  return new Promise((resolve) => {
+    try {
+      const service = new window.google.maps.places.AutocompleteService()
+      
       service.getPlacePredictions(
         {
           input: input,
@@ -200,11 +238,11 @@ export async function getPlacesAutocomplete(input: string, types: string[] = ['(
           }
         }
       )
-    })
-  } catch (error) {
-    console.error('Places autocomplete error:', error)
-    return []
-  }
+    } catch (error) {
+      console.error('Legacy places autocomplete error:', error)
+      resolve([])
+    }
+  })
 }
 
 // Get bounds for a set of coordinates
