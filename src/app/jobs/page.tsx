@@ -91,7 +91,7 @@ export default function JobsPage() {
       const jobsWithCompany = data?.map(job => ({
         ...job,
         company: job.profiles?.employer_profiles?.company_name || 'Company Name',
-        posted_date: job.posted_at || job.created_at
+        posted_date: job.posted_at || job.created_at || new Date().toISOString()
       })) || []
 
       setJobs(jobsWithCompany)
@@ -308,7 +308,7 @@ export default function JobsPage() {
                         variant="secondary" 
                         className="bg-blue-100 text-blue-800 ml-2 flex-shrink-0"
                       >
-                        {getTimeAgo(job.posted_date)}
+                        {job.posted_date ? getTimeAgo(job.posted_date) : 'Recently'}
                       </Badge>
                     </div>
                   </CardHeader>
