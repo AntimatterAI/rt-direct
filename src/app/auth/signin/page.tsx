@@ -42,7 +42,7 @@ export default function SignInPage() {
     setError('')
 
     try {
-      await signIn(formData.email, formData.password)
+      await signIn({ email: formData.email, password: formData.password })
       router.push('/dashboard')
     } catch (error: unknown) {
       console.error('Sign in error:', error)
