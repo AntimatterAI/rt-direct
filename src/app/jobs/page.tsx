@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import PageLayout from '@/components/shared/PageLayout'
-import JobMap from '@/components/jobs/JobMap'
+import JobMap from '@/components/JobMap'
+import { supabase } from '@/lib/supabase'
 import { 
   MapPin, 
   Clock, 
@@ -25,25 +26,31 @@ import {
   Loader2,
   Eye
 } from 'lucide-react'
-import { getJobs } from '@/lib/jobs'
 
 interface Job {
   id: string
   title: string
-  company: string
+  company?: string
   location: string
   salary_min?: number
   salary_max?: number
   employment_type: string
   work_type: string
-  shift_type: string
+  shift_type: string[]
   description: string
-  requirements: string[]
-  benefits: string[]
-  posted_date: string
+  requirements?: string[]
+  benefits?: string[]
+  posted_date?: string
+  posted_at?: string
+  created_at?: string
   latitude?: number
   longitude?: number
   application_count?: number
+  profiles?: {
+    employer_profiles?: {
+      company_name: string
+    }
+  }
 }
 
 export default function JobsPage() {
@@ -66,8 +73,31 @@ export default function JobsPage() {
 
   async function loadJobs() {
     try {
-      const jobsData = await getJobs()
-      setJobs(jobsData)
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          profiles!inner (
+            employer_profiles!inner (
+              company_name
+            )
+          )
+        `)
+        .eq('status', 'active')
+        .order('posted_at', { ascending: false })
+
+      if (error) {
+        console.error('Error loading jobs:', error)
+        return
+      }
+
+      const jobsWithCompany = data?.map(job => ({
+        ...job,
+        company: job.profiles?.employer_profiles?.company_name || 'Company Name',
+        posted_date: job.posted_at || job.created_at
+      })) || []
+
+      setJobs(jobsWithCompany)
     } catch (error) {
       console.error('Error loading jobs:', error)
     } finally {
@@ -81,7 +111,7 @@ export default function JobsPage() {
     if (searchTerm) {
       filtered = filtered.filter(job =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (job.company && job.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
         job.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
@@ -274,7 +304,7 @@ export default function JobsPage() {
                         </CardTitle>
                         <div className="flex items-center space-x-2 mt-2">
                           <Building className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-700 font-medium">{job.company}</span>
+                          <span className="text-gray-700 font-medium">{job.company || 'Company Name'}</span>
                         </div>
                       </div>
                       <Badge 
@@ -307,9 +337,11 @@ export default function JobsPage() {
                       <Badge variant="outline" className="text-xs">
                         {job.work_type}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {job.shift_type}
-                      </Badge>
+                      {job.shift_type && Array.isArray(job.shift_type) && job.shift_type.length > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {job.shift_type.join(', ')}
+                        </Badge>
+                      )}
                     </div>
 
                     <p className="text-gray-600 text-sm line-clamp-3">
