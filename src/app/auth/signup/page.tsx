@@ -89,7 +89,7 @@ export default function SignUpPage() {
       await signUp({
         email: formData.email,
         password: formData.password,
-        role: formData.role,
+        role: formData.role as 'tech' | 'employer',
         firstName: formData.firstName,
         lastName: formData.lastName
       })
