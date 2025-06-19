@@ -1,41 +1,51 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Briefcase, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
-  Users, 
-  Edit, 
-  Eye, 
-  Trash2,
-  Plus,
-  Search,
-  Filter
-} from 'lucide-react'
+import PageLayout from '@/components/shared/PageLayout'
 import { getCurrentUser, getUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { 
+  Briefcase, 
+  Users, 
+  Search, 
+  Filter, 
+  Plus, 
+  Edit, 
+  Eye, 
+  MoreHorizontal,
+  Calendar,
+  MapPin,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Building,
+  Loader2,
+  TrendingUp,
+  Star,
+  ArrowRight
+} from 'lucide-react'
 
 interface Job {
   id: string
   title: string
   location: string
-  work_type: string
   employment_type: string
+  work_type: string
+  shift_type: string[]
   salary_min?: number
   salary_max?: number
-  status: 'active' | 'closed' | 'draft'
-  created_at: string
-  application_count: number
-  pending_count: number
-  approved_count: number
+  status: string
+  posted_at: string
+  application_count?: number
+  applications?: {
+    status: string
+  }[]
 }
 
 export default function EmployerJobsPage() {
@@ -43,81 +53,140 @@ export default function EmployerJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed' | 'draft'>('all')
+  const [statusFilter, setStatusFilter] = useState('')
 
-  const loadEmployerJobs = useCallback(async () => {
+  useEffect(() => {
+    checkAuthAndLoadJobs()
+  }, [])
+
+  useEffect(() => {
+    filterJobs()
+  }, [jobs, searchTerm, statusFilter])
+
+  async function checkAuthAndLoadJobs() {
     try {
-      setIsLoading(true)
       const user = await getCurrentUser()
       if (!user) {
         router.push('/auth/signin')
         return
       }
 
-      const userProfile = await getUserProfile()
-      if (userProfile.role !== 'employer') {
+      const profile = await getUserProfile()
+      if (profile.role !== 'employer') {
         router.push('/dashboard')
         return
       }
 
-      // Load jobs with application counts
-      const { data: jobsData, error } = await supabase
+      setUserProfile(profile)
+      await loadJobs(user.id)
+    } catch (error) {
+      console.error('Error checking auth:', error)
+      router.push('/auth/signin')
+    }
+  }
+
+  async function loadJobs(userId: string) {
+    try {
+      const { data, error } = await supabase
         .from('jobs')
         .select(`
           *,
-          job_applications (
+          applications (
             id,
             status
           )
         `)
-        .eq('employer_id', user.id)
-        .order('created_at', { ascending: false })
+        .eq('employer_id', userId)
+        .order('posted_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error loading jobs:', error)
+        return
+      }
 
-      // Process jobs with application counts
-      const processedJobs = jobsData?.map(job => ({
+      const jobsWithCounts = data?.map(job => ({
         ...job,
-        application_count: job.job_applications?.length || 0,
-        pending_count: job.job_applications?.filter((app: { status: string }) => app.status === 'pending').length || 0,
-        approved_count: job.job_applications?.filter((app: { status: string }) => ['interview', 'hired'].includes(app.status)).length || 0
+        application_count: job.applications?.length || 0,
+        pending_count: job.applications?.filter((app: any) => app.status === 'pending').length || 0,
+        approved_count: job.applications?.filter((app: any) => app.status === 'hired').length || 0
       })) || []
 
-      setJobs(processedJobs)
+      setJobs(jobsWithCounts)
     } catch (error) {
       console.error('Error loading jobs:', error)
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }
 
-  const filterJobs = useCallback(() => {
+  function filterJobs() {
     let filtered = jobs
 
     if (searchTerm) {
-      filtered = filtered.filter(job => 
+      filtered = filtered.filter(job =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.location.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
-    if (statusFilter !== 'all') {
+    if (statusFilter) {
       filtered = filtered.filter(job => job.status === statusFilter)
     }
 
     setFilteredJobs(filtered)
-  }, [jobs, searchTerm, statusFilter])
+  }
 
-  useEffect(() => {
-    loadEmployerJobs()
-  }, [loadEmployerJobs])
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800 border-green-200'
+      case 'closed': return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'draft': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
 
-  useEffect(() => {
-    filterJobs()
-  }, [filterJobs])
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <CheckCircle className="w-3 h-3" />
+      case 'closed': return <AlertCircle className="w-3 h-3" />
+      case 'draft': return <Clock className="w-3 h-3" />
+      default: return <Clock className="w-3 h-3" />
+    }
+  }
 
-  async function updateJobStatus(jobId: string, newStatus: 'active' | 'closed') {
+  const formatSalary = (min?: number, max?: number) => {
+    if (!min && !max) return 'Competitive'
+    if (min && max) return `$${min.toLocaleString()} - $${max.toLocaleString()}`
+    if (min) return `$${min.toLocaleString()}+`
+    return `Up to $${max?.toLocaleString()}`
+  }
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays}d ago`
+    const diffInWeeks = Math.floor(diffInDays / 7)
+    return `${diffInWeeks}w ago`
+  }
+
+  const jobStats = {
+    total: jobs.length,
+    active: jobs.filter(job => job.status === 'active').length,
+    closed: jobs.filter(job => job.status === 'closed').length,
+    draft: jobs.filter(job => job.status === 'draft').length,
+    totalApplications: jobs.reduce((sum, job) => sum + (job.application_count || 0), 0),
+    pendingApplications: jobs.reduce((sum, job) => sum + (job.pending_count || 0), 0)
+  }
+
+  async function toggleJobStatus(jobId: string, currentStatus: string) {
+    const newStatus = currentStatus === 'active' ? 'closed' : 'active'
+    
     try {
       const { error } = await supabase
         .from('jobs')
@@ -126,284 +195,316 @@ export default function EmployerJobsPage() {
 
       if (error) throw error
 
-      // Update local state
-      setJobs(jobs.map(job => 
-        job.id === jobId ? { ...job, status: newStatus } : job
-      ))
+      // Reload jobs
+      if (userProfile) {
+        const user = await getCurrentUser()
+        if (user) await loadJobs(user.id)
+      }
     } catch (error) {
       console.error('Error updating job status:', error)
-      alert('Error updating job status')
     }
-  }
-
-  async function deleteJob(jobId: string) {
-    if (!confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('jobs')
-        .delete()
-        .eq('id', jobId)
-
-      if (error) throw error
-
-      setJobs(jobs.filter(job => job.id !== jobId))
-    } catch (error) {
-      console.error('Error deleting job:', error)
-      alert('Error deleting job')
-    }
-  }
-
-  const formatSalary = (min?: number, max?: number) => {
-    if (!min && !max) return 'Not specified'
-    if (min && max) return `$${min.toLocaleString()} - $${max.toLocaleString()}`
-    if (min) return `From $${min.toLocaleString()}`
-    if (max) return `Up to $${max.toLocaleString()}`
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800'
-      case 'closed': return 'bg-red-100 text-red-800'
-      case 'draft': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold mb-2">Loading Your Jobs...</h2>
-        </div>
-      </div>
-    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-green-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                ← Dashboard
+    <PageLayout>
+      <div className="min-h-screen">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/5 to-purple-400/5 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  Manage Jobs
+                </h1>
+                <p className="text-gray-600 text-lg">
+                  Oversee your job postings and candidate applications
+                </p>
+              </div>
+              <Button
+                onClick={() => router.push('/employers/post-job')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Post New Job
               </Button>
+            </div>
+
+            {/* Statistics */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+              <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-900">{jobStats.total}</div>
+                  <div className="text-sm text-gray-600">Total Jobs</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{jobStats.active}</div>
+                  <div className="text-sm text-gray-600">Active</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-600">{jobStats.closed}</div>
+                  <div className="text-sm text-gray-600">Closed</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-yellow-600">{jobStats.draft}</div>
+                  <div className="text-sm text-gray-600">Draft</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{jobStats.totalApplications}</div>
+                  <div className="text-sm text-gray-600">Applications</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600">{jobStats.pendingApplications}</div>
+                  <div className="text-sm text-gray-600">Pending</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search and Filters */}
+            <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search jobs..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="w-full md:w-48 pl-10 pr-4 h-12 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-blue-500 bg-white"
+                    >
+                      <option value="">All Status</option>
+                      <option value="active">Active</option>
+                      <option value="closed">Closed</option>
+                      <option value="draft">Draft</option>
+                    </select>
+                  </div>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setStatusFilter('')
+                    }}
+                    className="h-12 border-gray-200 text-gray-600 hover:bg-gray-50"
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Jobs List */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
               <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-gray-900">Manage Jobs</span>
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-gray-600">Loading your jobs...</span>
               </div>
             </div>
-            <Button 
-              onClick={() => router.push('/employers/post-job')}
-              className="flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Post New Job</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Job Postings</h1>
-          <p className="text-gray-600">Manage your job listings and review applications</p>
-        </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search jobs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Select value={statusFilter} onValueChange={(value: 'all' | 'active' | 'closed' | 'draft') => setStatusFilter(value)}>
-            <SelectTrigger>
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="text-sm text-gray-600 flex items-center">
-            <span className="font-medium">{filteredJobs.length}</span>
-            <span className="ml-1">job{filteredJobs.length !== 1 ? 's' : ''} found</span>
-          </div>
-        </div>
-
-        {/* Job List */}
-        {filteredJobs.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {jobs.length === 0 ? 'No jobs posted yet' : 'No jobs match your filters'}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {jobs.length === 0 
-                  ? 'Start by posting your first job to attract qualified radiologic technologists.' 
-                  : 'Try adjusting your search or filter criteria.'
-                }
-              </p>
-              {jobs.length === 0 && (
-                <Button onClick={() => router.push('/employers/post-job')}>
+          ) : filteredJobs.length === 0 ? (
+            <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
+              <CardContent className="text-center py-12">
+                <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {jobs.length === 0 ? 'No jobs posted yet' : 'No jobs found'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {jobs.length === 0 
+                    ? 'Start by posting your first radiologic technology position.'
+                    : 'Try adjusting your search criteria to find more jobs.'
+                  }
+                </p>
+                <Button 
+                  onClick={() => router.push('/employers/post-job')}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Post Your First Job
                 </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {filteredJobs.map((job) => (
-              <Card key={job.id} className="bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <CardTitle className="text-xl text-gray-900">{job.title}</CardTitle>
-                        <Badge className={getStatusColor(job.status)}>
-                          {job.status}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {filteredJobs.map((job) => (
+                <Card 
+                  key={job.id} 
+                  className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group"
+                >
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
+                          {job.title}
+                        </CardTitle>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{job.location}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>Posted {getTimeAgo(job.posted_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Badge className={`flex items-center space-x-1 ${getStatusColor(job.status)}`}>
+                        {getStatusIcon(job.status)}
+                        <span className="capitalize">{job.status}</span>
+                      </Badge>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                        <span className="text-green-700 font-medium">
+                          {formatSalary(job.salary_min, job.salary_max)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-blue-600" />
+                        <span className="text-blue-700 font-medium">
+                          {job.application_count || 0} applications
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {job.employment_type}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {job.work_type}
+                      </Badge>
+                      {job.shift_type && job.shift_type.length > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {job.shift_type.join(', ')}
                         </Badge>
+                      )}
+                    </div>
+
+                    {/* Application Stats */}
+                    {(job.application_count || 0) > 0 && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Applications breakdown:</span>
+                          <div className="flex space-x-4">
+                            <span className="text-yellow-600">
+                              {job.pending_count || 0} pending
+                            </span>
+                            <span className="text-green-600">
+                              {job.approved_count || 0} hired
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                          onClick={() => router.push(`/jobs/${job.id}`)}
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                          onClick={() => router.push(`/employers/jobs/${job.id}/edit`)}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
                       </div>
                       
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {job.location}
-                        </div>
-                        <div className="flex items-center">
-                          <DollarSign className="w-4 h-4 mr-1" />
-                          {formatSalary(job.salary_min, job.salary_max)}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {new Date(job.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-4 text-sm">
-                        <Badge className="bg-blue-100 text-blue-800">
-                          {job.employment_type}
-                        </Badge>
-                        <Badge className="bg-green-100 text-green-800">
-                          {job.work_type}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span className="font-semibold text-lg">{job.application_count}</span>
-                        <span className="text-sm text-gray-600">applications</span>
-                      </div>
-                      {job.pending_count > 0 && (
-                        <div className="text-xs text-orange-600 mb-1">
-                          {job.pending_count} pending review
-                        </div>
-                      )}
-                      {job.approved_count > 0 && (
-                        <div className="text-xs text-green-600">
-                          {job.approved_count} approved
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={() => router.push(`/employers/jobs/${job.id}/applications`)}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center space-x-1"
-                      >
-                        <Users className="w-4 h-4" />
-                        <span>Applications</span>
-                        {job.pending_count > 0 && (
-                          <Badge className="bg-orange-100 text-orange-800 ml-1">
-                            {job.pending_count}
-                          </Badge>
+                      <div className="flex space-x-2">
+                        {(job.application_count || 0) > 0 && (
+                          <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                            onClick={() => router.push(`/employers/jobs/${job.id}/applications`)}
+                          >
+                            <Users className="w-3 h-3 mr-1" />
+                            Applications
+                          </Button>
                         )}
-                      </Button>
-
-                      <Button
-                        onClick={() => router.push(`/employers/jobs/${job.id}/edit`)}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center space-x-1"
-                      >
-                        <Edit className="w-4 h-4" />
-                        <span>Edit</span>
-                      </Button>
-
-                      <Button
-                        onClick={() => router.push(`/jobs/${job.id}`)}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center space-x-1"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>View</span>
-                      </Button>
-                    </div>
-
-                    <div className="flex space-x-2">
-                      {job.status === 'active' ? (
+                        
                         <Button
-                          onClick={() => updateJobStatus(job.id, 'closed')}
-                          variant="outline"
                           size="sm"
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Close Job
-                        </Button>
-                      ) : job.status === 'closed' ? (
-                        <Button
-                          onClick={() => updateJobStatus(job.id, 'active')}
                           variant="outline"
-                          size="sm"
-                          className="text-green-600 hover:text-green-700"
+                          className={job.status === 'active' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'}
+                          onClick={() => toggleJobStatus(job.id, job.status)}
                         >
-                          Reopen Job
+                          {job.status === 'active' ? 'Close' : 'Reopen'}
                         </Button>
-                      ) : null}
-
-                      <Button
-                        onClick={() => deleteJob(job.id)}
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Tips Card */}
+          <Card className="mt-8 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Star className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-1">Optimize Your Job Postings</h3>
+                  <p className="text-gray-600 text-sm">
+                    Jobs with detailed descriptions and competitive benefits receive 2x more qualified applications.
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-green-200 text-green-700 hover:bg-green-50"
+                  onClick={() => router.push('/employers/post-job')}
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Post Better Job
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 

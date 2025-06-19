@@ -1,197 +1,211 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn, getCurrentUser } from '@/lib/auth'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import PageLayout from '@/components/shared/PageLayout'
+import { signIn } from '@/lib/auth'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, User, Building, Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
-
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
-  // Check if user is already authenticated (with protection against infinite loops)
-  useEffect(() => {
-    if (hasCheckedAuth) return
-
-    const checkAuthStatus = async () => {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        const user = await getCurrentUser()
-        if (user) {
-          console.log('User already authenticated, redirecting to dashboard...')
-          router.replace('/dashboard')
-          return
-        }
-      } catch (authError) {
-        console.log('No authenticated user found or auth error:', authError)
-      } finally {
-        setIsCheckingAuth(false)
-        setHasCheckedAuth(true)
-      }
-    }
-
-    checkAuthStatus()
-  }, [router, hasCheckedAuth])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }))
+    if (error) setError('')
   }
 
-  const validateForm = () => {
-    if (!formData.email.trim()) return 'Email is required'
-    if (!formData.email.includes('@')) return 'Please enter a valid email address'
-    if (!formData.password) return 'Password is required'
-    return null
-  }
-
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isLoading) return
-
-    const validationError = validateForm()
-    if (validationError) {
-      setError(validationError)
+    
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all fields')
       return
     }
 
     setIsLoading(true)
-    setError(null)
+    setError('')
 
     try {
-      console.log('Starting signin process...')
-      const result = await signIn({
-        email: formData.email,
-        password: formData.password,
-      })
-
-      console.log('Signin successful:', result.user?.id)
-      
-      setTimeout(() => {
-        router.replace('/dashboard')
-      }, 1000)
-
-    } catch (signInError: unknown) {
-      console.error('Signin error:', signInError)
-      const message = signInError instanceof Error ? signInError.message : 'An error occurred during sign in'
-      setError(message)
+      await signIn(formData.email, formData.password)
+      router.push('/dashboard')
+    } catch (error: any) {
+      console.error('Sign in error:', error)
+      setError(error.message || 'Invalid email or password')
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Show loading spinner while checking auth status
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Loading...</span>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12 px-4">
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to access your RT Direct dashboard</p>
-        </div>
+    <PageLayout>
+      <div className="min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Animated background decoration */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign in to your account</CardTitle>
-            <CardDescription>
-              Continue your radiology career journey
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="space-y-6">
-              {/* Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Enter your email"
-                  disabled={isLoading}
-                  required
-                />
+          <Card className="bg-white/80 backdrop-blur-md border-0 shadow-2xl relative z-10">
+            <CardHeader className="text-center space-y-2 pb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <User className="w-8 h-8 text-white" />
               </div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Welcome Back
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Sign in to your RT Direct account
+              </CardDescription>
+            </CardHeader>
 
-              {/* Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Enter your password"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              {/* Error Alert */}
+            <CardContent className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                  <span className="text-sm text-red-800">{error}</span>
-                </div>
+                <Alert className="border-red-200 bg-red-50 text-red-800">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing In...
-                  </>
-                ) : (
-                  'Sign In'
-                )}
-              </Button>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700 font-medium">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your@email.com"
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                </div>
 
-              {/* Sign Up Link */}
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Don&apos;t have an account?{' '}
-                  <Link href="/auth/signup" className="text-blue-600 hover:underline">
-                    Create account
-                  </Link>
-                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-gray-700 font-medium">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      Sign In
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500">Don&apos;t have an account?</span>
+                </div>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+
+              <div className="space-y-3">
+                <Link href="/auth/signup">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 font-semibold transition-all duration-200 hover:scale-[1.02]"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Join as Radiologic Technologist
+                  </Button>
+                </Link>
+                
+                <Link href="/auth/signup">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 font-semibold transition-all duration-200 hover:scale-[1.02]"
+                  >
+                    <Building className="mr-2 h-4 w-4" />
+                    Join as Healthcare Employer
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="text-center">
+                <Link 
+                  href="/" 
+                  className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-200"
+                >
+                  ← Back to Home
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500">
+              By signing in, you agree to our{' '}
+              <Link href="/terms" className="text-blue-600 hover:underline">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-blue-600 hover:underline">
+                Privacy Policy
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 

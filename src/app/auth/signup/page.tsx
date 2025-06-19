@@ -1,86 +1,82 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signUp, getCurrentUser } from '@/lib/auth'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Loader2, User, Building, CheckCircle } from 'lucide-react'
-import Link from 'next/link'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import PageLayout from '@/components/shared/PageLayout'
+import { signUp } from '@/lib/auth'
+import { 
+  Eye, 
+  EyeOff, 
+  Mail, 
+  Lock, 
+  ArrowRight, 
+  User, 
+  Building, 
+  Loader2,
+  UserPlus,
+  CheckCircle,
+  Shield,
+  Stethoscope
+} from 'lucide-react'
 
 export default function SignUpPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
-
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'tech' as 'tech' | 'employer'
+    role: '' as 'tech' | 'employer' | '',
+    firstName: '',
+    lastName: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  // Check if user is already authenticated (with protection against infinite loops)
-  useEffect(() => {
-    if (hasCheckedAuth) return
-
-    const checkAuthStatus = async () => {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        const user = await getCurrentUser()
-        if (user) {
-          console.log('User already authenticated, redirecting to dashboard...')
-          router.replace('/dashboard')
-          return
-        }
-      } catch (authError) {
-        console.log('No authenticated user found or auth error:', authError)
-      } finally {
-        setIsCheckingAuth(false)
-        setHasCheckedAuth(true)
-      }
-    }
-
-    checkAuthStatus()
-  }, [router, hasCheckedAuth])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }))
+    if (error) setError('')
   }
 
-  const handleRoleChange = (role: 'tech' | 'employer') => {
-    setFormData(prev => ({
-      ...prev,
-      role
-    }))
+  const handleRoleSelect = (role: 'tech' | 'employer') => {
+    setFormData(prev => ({ ...prev, role }))
+    if (error) setError('')
   }
 
   const validateForm = () => {
-    if (!formData.firstName.trim()) return 'First name is required'
-    if (!formData.lastName.trim()) return 'Last name is required'
-    if (!formData.email.trim()) return 'Email is required'
-    if (!formData.email.includes('@')) return 'Please enter a valid email address'
-    if (!formData.password) return 'Password is required'
-    if (formData.password.length < 8) return 'Password must be at least 8 characters'
-    if (formData.password !== formData.confirmPassword) return 'Passwords do not match'
+    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.role) {
+      return 'Please fill in all required fields'
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      return 'Passwords do not match'
+    }
+    
+    if (formData.password.length < 6) {
+      return 'Password must be at least 6 characters long'
+    }
+    
+    if (!formData.email.includes('@')) {
+      return 'Please enter a valid email address'
+    }
+    
     return null
   }
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isLoading) return
-
+    
     const validationError = validateForm()
     if (validationError) {
       setError(validationError)
@@ -88,247 +84,294 @@ export default function SignUpPage() {
     }
 
     setIsLoading(true)
-    setError(null)
+    setError('')
 
     try {
-      console.log('Starting signup process...')
-      const result = await signUp({
+      await signUp({
         email: formData.email,
         password: formData.password,
         role: formData.role,
         firstName: formData.firstName,
-        lastName: formData.lastName,
+        lastName: formData.lastName
       })
-
-      console.log('Signup result:', result)
-
-      if (result.success) {
-        setSuccess(true)
-        
-        setTimeout(() => {
-          console.log('Redirecting to dashboard...')
-          router.replace('/dashboard')
-        }, 3000)
-      } else {
-        throw new Error('Signup failed for unknown reason')
-      }
-
-    } catch (signUpError: unknown) {
-      console.error('Signup error:', signUpError)
-      const message = signUpError instanceof Error ? signUpError.message : 'An error occurred during signup'
-      setError(message)
-      setSuccess(false)
+      router.push('/dashboard')
+    } catch (error: any) {
+      console.error('Sign up error:', error)
+      setError(error.message || 'An error occurred during sign up')
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Show loading spinner while checking auth status
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Loading...</span>
-        </div>
-      </div>
-    )
-  }
-
-  // Show success state
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl text-green-600">Welcome to RT Direct!</CardTitle>
-            <CardDescription>
-              Your account has been created successfully. Redirecting you to your dashboard...
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12 px-4">
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Join RT Direct</h1>
-          <p className="text-gray-600">Create your account to get started</p>
-        </div>
+    <PageLayout>
+      <div className="min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          {/* Animated background decoration */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Account</CardTitle>
-            <CardDescription>
-              Join thousands of respiratory therapy professionals
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="space-y-6">
-              {/* Role Selection */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">I am a...</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <input
-                      type="radio"
-                      id="tech"
-                      name="role"
-                      value="tech"
-                      checked={formData.role === 'tech'}
-                      onChange={() => handleRoleChange('tech')}
-                      className="sr-only peer"
-                    />
-                    <Label
-                      htmlFor="tech"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-checked:border-primary cursor-pointer"
-                    >
-                      <User className="mb-3 h-6 w-6" />
-                      <span className="font-medium">RT Professional</span>
-                      <span className="text-xs text-muted-foreground text-center">
-                        Looking for opportunities
-                      </span>
-                    </Label>
-                  </div>
-                  <div>
-                    <input
-                      type="radio"
-                      id="employer"
-                      name="role"
-                      value="employer"
-                      checked={formData.role === 'employer'}
-                      onChange={() => handleRoleChange('employer')}
-                      className="sr-only peer"
-                    />
-                    <Label
-                      htmlFor="employer"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-checked:border-primary cursor-pointer"
-                    >
-                      <Building className="mb-3 h-6 w-6" />
-                      <span className="font-medium">Healthcare Facility</span>
-                      <span className="text-xs text-muted-foreground text-center">
-                        Looking to hire
-                      </span>
-                    </Label>
-                  </div>
-                </div>
+          <Card className="bg-white/80 backdrop-blur-md border-0 shadow-2xl relative z-10">
+            <CardHeader className="text-center space-y-2 pb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <UserPlus className="w-8 h-8 text-white" />
               </div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Join RT Direct
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Start your radiologic technology career journey
+              </CardDescription>
+            </CardHeader>
 
-              {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="John"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Doe"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="john@example.com"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              {/* Password Fields */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Enter your password"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Confirm your password"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              {/* Error Alert */}
+            <CardContent className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4 flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                  <span className="text-sm text-red-800">{error}</span>
-                </div>
+                <Alert className="border-red-200 bg-red-50 text-red-800">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  'Create Account'
-                )}
-              </Button>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Role Selection */}
+                <div className="space-y-3">
+                  <Label className="text-gray-700 font-medium">Choose Your Role</Label>
+                  <div className="grid grid-cols-1 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleRoleSelect('tech')}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                        formData.role === 'tech'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          formData.role === 'tech' ? 'bg-blue-500' : 'bg-gray-300'
+                        }`}>
+                          <Stethoscope className={`w-5 h-5 ${formData.role === 'tech' ? 'text-white' : 'text-gray-600'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-semibold text-gray-900">Radiologic Technologist</h3>
+                            {formData.role === 'tech' && <CheckCircle className="w-4 h-4 text-blue-500" />}
+                          </div>
+                          <p className="text-sm text-gray-600">Looking for job opportunities</p>
+                        </div>
+                      </div>
+                    </button>
 
-              {/* Sign In Link */}
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Already have an account?{' '}
-                  <Link href="/auth/signin" className="text-blue-600 hover:underline">
-                    Sign in
-                  </Link>
-                </p>
+                    <button
+                      type="button"
+                      onClick={() => handleRoleSelect('employer')}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                        formData.role === 'employer'
+                          ? 'border-purple-500 bg-purple-50 shadow-md'
+                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          formData.role === 'employer' ? 'bg-purple-500' : 'bg-gray-300'
+                        }`}>
+                          <Building className={`w-5 h-5 ${formData.role === 'employer' ? 'text-white' : 'text-gray-600'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-semibold text-gray-900">Healthcare Employer</h3>
+                            {formData.role === 'employer' && <CheckCircle className="w-4 h-4 text-purple-500" />}
+                          </div>
+                          <p className="text-sm text-gray-600">Posting job opportunities</p>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Personal Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-gray-700 font-medium">
+                      First Name
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        placeholder="First name"
+                        className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-gray-700 font-medium">
+                      Last Name
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        placeholder="Last name"
+                        className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700 font-medium">
+                    Email Address *
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your@email.com"
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-gray-700 font-medium">
+                    Password *
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Create a password (min. 6 characters)"
+                      className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
+                    Confirm Password *
+                  </Label>
+                  <div className="relative">
+                    <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Confirm your password"
+                      className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isLoading || !formData.role}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      Create Account
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500">Already have an account?</span>
+                </div>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+
+              <Link href="/auth/signin">
+                <Button 
+                  variant="outline" 
+                  className="w-full h-12 border-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 font-semibold transition-all duration-200 hover:scale-[1.02]"
+                >
+                  Sign In Instead
+                </Button>
+              </Link>
+
+              <div className="text-center">
+                <Link 
+                  href="/" 
+                  className="text-sm text-gray-500 hover:text-blue-600 transition-colors duration-200"
+                >
+                  ← Back to Home
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-500">
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="text-blue-600 hover:underline">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-blue-600 hover:underline">
+                Privacy Policy
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 

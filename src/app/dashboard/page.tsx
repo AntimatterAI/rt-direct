@@ -4,393 +4,464 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// import { Alert, AlertDescription } from '@/components/ui/alert'
-import { getCurrentUser, getUserProfile, signOut } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
-import { Profile } from '@/types'
-import { AlertCircle, User, Building, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import PageLayout from '@/components/shared/PageLayout'
+import { getCurrentUser, getUserProfile } from '@/lib/auth'
+import { 
+  User, 
+  Building, 
+  Briefcase, 
+  FileText, 
+  MapPin, 
+  Calendar,
+  Clock,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  AlertCircle,
+  Star,
+  ArrowRight,
+  PlusCircle,
+  Settings,
+  Bell,
+  Heart
+} from 'lucide-react'
+
+interface UserProfile {
+  id: string
+  first_name?: string
+  last_name?: string
+  email?: string
+  role: 'tech' | 'employer'
+  location?: string
+  years_experience?: number
+  certifications?: string[]
+  specializations?: string[]
+  company_name?: string
+  company_size?: string
+  created_at?: string
+}
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [profileError, setProfileError] = useState<string | null>(null)
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false)
-  const [isSigningOut, setIsSigningOut] = useState(false)
+  const [applicationStats, setApplicationStats] = useState({
+    total: 0,
+    pending: 0,
+    reviewed: 0,
+    interview: 0,
+    hired: 0,
+    rejected: 0
+  })
+  const [jobStats, setJobStats] = useState({
+    total: 0,
+    active: 0,
+    totalApplications: 0,
+    pendingApplications: 0
+  })
 
   useEffect(() => {
-    // Set page title for SEO
-    document.title = 'Dashboard | RT Direct - Manage Your Radiology Career'
-    
-    async function loadProfile() {
-      try {
-        const user = await getCurrentUser()
-        if (!user) {
-          router.push('/auth/signin')
-          return
-        }
+    loadUserProfile()
+  }, [])
 
-        try {
-          const userProfile = await getUserProfile()
-          setProfile(userProfile)
-        } catch (profileError: unknown) {
-          console.error('Error loading profile:', profileError)
-          
-          // Check if it's a missing profile error (PGRST116)
-          const error = profileError as { code?: string; message?: string }
-          if (error?.code === 'PGRST116' || 
-              error?.message?.includes('multiple (or no) rows returned') ||
-              error?.message?.includes('JSON object requested')) {
-            setProfileError('Your profile needs to be set up. Please create your profile to continue.')
-          } else {
-            // For other errors, redirect to signin
-            router.push('/auth/signin')
-            return
-          }
-        }
-      } catch (error) {
-        console.error('Error in loadProfile:', error)
-        router.push('/auth/signin')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadProfile()
-  }, [router])
-
-  const handleSignOut = async () => {
-    setIsSigningOut(true)
-    try {
-      await signOut()
-      router.push('/')
-    } catch (error) {
-      console.error('Error signing out:', error)
-      setIsSigningOut(false)
-    }
-  }
-
-  const createBasicProfile = async (role: 'tech' | 'employer') => {
-    setIsCreatingProfile(true)
+  async function loadUserProfile() {
     try {
       const user = await getCurrentUser()
       if (!user) {
-        throw new Error('No authenticated user found')
+        router.push('/auth/signin')
+        return
       }
 
-      // Create basic profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          email: user.email || '',
-          role: role,
-          first_name: '',
-          last_name: '',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+      const profile = await getUserProfile()
+      setUserProfile(profile)
+
+      // TODO: Load actual stats from your API
+      if (profile.role === 'tech') {
+        setApplicationStats({
+          total: 5,
+          pending: 2,
+          reviewed: 1,
+          interview: 1,
+          hired: 1,
+          rejected: 0
         })
-
-      if (profileError) {
-        console.error('Error creating profile:', profileError)
-        throw profileError
-      }
-
-      // Create role-specific profile
-      if (role === 'tech') {
-        const { error: techError } = await supabase
-          .from('tech_profiles')
-          .insert({
-            profile_id: user.id,
-            experience_years: 0,
-            certifications: [],
-            specializations: [],
-            preferred_shifts: [],
-            travel_radius: 50,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-        if (techError) {
-          console.error('Error creating tech profile:', techError)
-        }
       } else {
-        const { error: employerError } = await supabase
-          .from('employer_profiles')
-          .insert({
-            profile_id: user.id,
-            company_name: 'Company Name',
-            company_size: '1-10 employees',
-            industry: 'Healthcare',
-            verified: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-        if (employerError) {
-          console.error('Error creating employer profile:', employerError)
-        }
+        setJobStats({
+          total: 3,
+          active: 2,
+          totalApplications: 12,
+          pendingApplications: 8
+        })
       }
-
-      // Reload the page to fetch the new profile
-      window.location.reload()
-
     } catch (error) {
-      console.error('Error creating profile:', error)
-      alert('Failed to create profile. Please try again or contact support.')
+      console.error('Error loading profile:', error)
+      router.push('/auth/signin')
     } finally {
-      setIsCreatingProfile(false)
+      setIsLoading(false)
     }
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
-          <p className="text-gray-600">Setting up your dashboard</p>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-blue-600 rounded-full animate-pulse"></div>
+            <div className="w-4 h-4 bg-purple-600 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-4 h-4 bg-cyan-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <span className="text-gray-600 ml-2">Loading your dashboard...</span>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     )
   }
 
-  // Show profile setup if profile doesn't exist
-  if (profileError && !profile) {
+  if (!userProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
-              <CardDescription>
-                To continue using RT Direct, please select your role and we&apos;ll set up your profile.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 flex items-center space-x-2">
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-800">{profileError}</span>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Not Found</h3>
+              <p className="text-gray-600 mb-4">Unable to load your profile information.</p>
+              <Button onClick={() => router.push('/auth/signin')}>
+                Sign In Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  const renderTechDashboard = () => (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 p-8 text-white">
+        <div className="relative z-10">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">
+                Welcome back, {userProfile.first_name || 'Professional'}!
+              </h1>
+              <p className="text-blue-100 text-lg">
+                Ready to find your next opportunity?
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Applications</p>
+                <p className="text-3xl font-bold text-gray-900">{applicationStats.total}</p>
               </div>
-
-              <div className="space-y-3">
-                <Button
-                  className="w-full h-auto py-4 px-6"
-                  variant="outline"
-                  onClick={() => createBasicProfile('tech')}
-                  disabled={isCreatingProfile}
-                >
-                  <div className="flex items-center space-x-3">
-                    <User className="w-6 h-6" />
-                    <div className="text-left">
-                      <div className="font-semibold">Radiologic Technologist</div>
-                      <div className="text-sm text-gray-600">Looking for job opportunities</div>
-                    </div>
-                  </div>
-                </Button>
-
-                <Button
-                  className="w-full h-auto py-4 px-6"
-                  variant="outline"
-                  onClick={() => createBasicProfile('employer')}
-                  disabled={isCreatingProfile}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Building className="w-6 h-6" />
-                    <div className="text-left">
-                      <div className="font-semibold">Healthcare Employer</div>
-                      <div className="text-sm text-gray-600">Posting job opportunities</div>
-                    </div>
-                  </div>
-                </Button>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <FileText className="w-6 h-6 text-blue-600" />
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="pt-4 border-t">
-                <Button
-                  variant="ghost"
-                  className="w-full"
-                  onClick={handleSignOut}
-                >
-                  Sign Out
-                </Button>
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                <p className="text-3xl font-bold text-yellow-600">{applicationStats.pending}</p>
               </div>
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              {isCreatingProfile && (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Creating your profile...</p>
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Interviews</p>
+                <p className="text-3xl font-bold text-purple-600">{applicationStats.interview}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Hired</p>
+                <p className="text-3xl font-bold text-green-600">{applicationStats.hired}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Briefcase className="w-5 h-5 text-blue-600" />
+              <span>Find Your Next Role</span>
+            </CardTitle>
+            <CardDescription>
+              Discover new opportunities that match your skills and preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">New Jobs Available</p>
+                <p className="text-sm text-gray-600">15 new positions in your area</p>
+              </div>
+              <Badge className="bg-blue-100 text-blue-800">New</Badge>
+            </div>
+            <Button 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              onClick={() => router.push('/jobs')}
+            >
+              Browse Jobs
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-purple-600" />
+              <span>Application Status</span>
+            </CardTitle>
+            <CardDescription>
+              Track your applications and stay updated on progress
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Recent Activity</p>
+                <p className="text-sm text-gray-600">{applicationStats.pending} applications need attention</p>
+              </div>
+              {applicationStats.pending > 0 && <Badge className="bg-yellow-100 text-yellow-800">Updates</Badge>}
+            </div>
+            <Button 
+              variant="outline"
+              className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+              onClick={() => router.push('/applications')}
+            >
+              View Applications
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+
+  const renderEmployerDashboard = () => (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 p-8 text-white">
+        <div className="relative z-10">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <Building className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">
+                Welcome, {userProfile.company_name || userProfile.first_name || 'Employer'}!
+              </h1>
+              <p className="text-blue-100 text-lg">
+                Manage your job postings and candidates
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24"></div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Jobs</p>
+                <p className="text-3xl font-bold text-gray-900">{jobStats.active}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Applications</p>
+                <p className="text-3xl font-bold text-purple-600">{jobStats.totalApplications}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <FileText className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                <p className="text-3xl font-bold text-yellow-600">{jobStats.pendingApplications}</p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Response Rate</p>
+                <p className="text-3xl font-bold text-green-600">85%</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <PlusCircle className="w-5 h-5 text-blue-600" />
+              <span>Post New Job</span>
+            </CardTitle>
+            <CardDescription>
+              Create a new job posting to attract top radiologic talent
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Quick Posting</p>
+                <p className="text-sm text-gray-600">Get your position live in minutes</p>
+              </div>
+              <Badge className="bg-blue-100 text-blue-800">Easy</Badge>
+            </div>
+            <Button 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              onClick={() => router.push('/employers/post-job')}
+            >
+              Post a Job
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-purple-600" />
+              <span>Manage Applications</span>
+            </CardTitle>
+            <CardDescription>
+              Review candidates and manage your hiring pipeline
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">New Applications</p>
+                <p className="text-sm text-gray-600">{jobStats.pendingApplications} candidates waiting for review</p>
+              </div>
+              {jobStats.pendingApplications > 0 && <Badge className="bg-yellow-100 text-yellow-800">Review</Badge>}
+            </div>
+            <Button 
+              variant="outline"
+              className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+              onClick={() => router.push('/employers/jobs')}
+            >
+              View Applications
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+
+  return (
+    <PageLayout>
+      <div className="min-h-screen">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/5 to-purple-400/5 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {userProfile.role === 'tech' ? renderTechDashboard() : renderEmployerDashboard()}
+
+          {/* Profile Completion Reminder */}
+          <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Star className="w-6 h-6 text-green-600" />
                 </div>
-              )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">Complete Your Profile</h3>
+                  <p className="text-gray-600">
+                    A complete profile increases your {userProfile.role === 'tech' ? 'job match rate' : 'candidate quality'} by 75%
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-green-200 text-green-700 hover:bg-green-50"
+                  onClick={() => router.push('/profile')}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Update Profile
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
-    )
-  }
-
-  if (!profile) {
-    return null
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                RT Direct
-              </h1>
-              <span className="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                {profile.role === 'tech' ? 'Radiologic Tech' : 'Employer'}
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                Welcome, {profile.first_name || 'User'}!
-              </span>
-              <Button variant="outline" onClick={handleSignOut} disabled={isSigningOut}>
-                {isSigningOut ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing Out...
-                  </>
-                ) : (
-                  'Sign Out'
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Dashboard
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            {profile.role === 'tech' 
-              ? 'Find your next radiology position' 
-              : 'Manage your job postings and candidates'
-            }
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {profile.role === 'tech' ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Browse Jobs</CardTitle>
-                  <CardDescription>
-                    Explore available radiology positions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => router.push('/jobs')}
-                  >
-                    View Jobs
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Applications</CardTitle>
-                  <CardDescription>
-                    Track your job applications
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => router.push('/applications')}
-                  >
-                    View Applications
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile</CardTitle>
-                  <CardDescription>
-                    Update your professional profile
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => router.push('/profile/tech')}
-                  >
-                    Edit Profile
-                  </Button>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Post a Job</CardTitle>
-                  <CardDescription>
-                    Create a new job posting
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    className="w-full"
-                    onClick={() => router.push('/employers/post-job')}
-                  >
-                    Post Job
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Jobs</CardTitle>
-                  <CardDescription>
-                    View and edit your job postings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => router.push('/employers/jobs')}
-                  >
-                    View Jobs
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Company Profile</CardTitle>
-                  <CardDescription>
-                    Update your company information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => router.push('/profile/employer')}
-                  >
-                    Edit Profile
-                  </Button>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
+    </PageLayout>
   )
 } 

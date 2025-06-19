@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import Link from 'next/link'
 
 // Register GSAP plugins
 if (typeof window !== 'undefined') {
@@ -14,8 +13,25 @@ if (typeof window !== 'undefined') {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, MapPin, Clock, Shield, TrendingUp, Stethoscope, Activity, Award, Heart, ArrowRight, CheckCircle, Building, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import Header from '@/components/shared/Header'
+import { getCurrentUser, getUserProfile } from '@/lib/auth'
+import { 
+  Users, 
+  MapPin, 
+  Clock, 
+  Shield, 
+  TrendingUp, 
+  Stethoscope, 
+  Activity, 
+  Award, 
+  Heart, 
+  ArrowRight, 
+  CheckCircle, 
+  Building,
+  User,
+  Briefcase,
+  FileText
+} from 'lucide-react'
 
 export default function HomePage() {
   const router = useRouter()
@@ -23,7 +39,32 @@ export default function HomePage() {
   const featuresRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    checkAuthStatus()
+  }, [])
+
+  async function checkAuthStatus() {
+    try {
+      const user = await getCurrentUser()
+      if (user) {
+        setIsAuthenticated(true)
+        try {
+          const profile = await getUserProfile()
+          setUserProfile(profile)
+        } catch (error) {
+          console.error('Error loading profile:', error)
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     // Only run animations if we're on the home page and elements exist
@@ -138,116 +179,101 @@ export default function HomePage() {
     }
   }, [])
 
+  const renderHeroButtons = () => {
+    if (isLoading) {
+      return (
+        <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="w-48 h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="w-48 h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+      )
+    }
+
+    if (isAuthenticated && userProfile) {
+      // Show different buttons based on user role
+      if (userProfile.role === 'tech') {
+        return (
+          <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              onClick={() => router.push('/jobs')}
+            >
+              <Briefcase className="mr-2 w-5 h-5" />
+              Browse Jobs
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105"
+              onClick={() => router.push('/applications')}
+            >
+              <FileText className="mr-2 w-5 h-5" />
+              My Applications
+            </Button>
+          </div>
+        )
+      } else {
+        return (
+          <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              onClick={() => router.push('/employers/post-job')}
+            >
+              <Building className="mr-2 w-5 h-5" />
+              Post a Job
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105"
+              onClick={() => router.push('/employers/jobs')}
+            >
+              <Users className="mr-2 w-5 h-5" />
+              Manage Jobs
+            </Button>
+          </div>
+        )
+      }
+    }
+
+    // Not authenticated - show default signup buttons
+    return (
+      <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <Button 
+          size="lg" 
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          onClick={() => router.push('/auth/signup')}
+        >
+          Find Your Next Role
+          <ArrowRight className="ml-2 w-5 h-5" />
+        </Button>
+        <Button 
+          variant="outline" 
+          size="lg" 
+          className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105"
+          onClick={() => router.push('/auth/signup')}
+        >
+          <Building className="mr-2 w-5 h-5" />
+          Post a Position
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">RT Direct</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/jobs" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                Browse Jobs
-              </Link>
-              <Link href="/about" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
-                Contact
-              </Link>
-            </nav>
-
-            {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                className="text-gray-600 hover:text-blue-600"
-                onClick={() => router.push('/auth/signin')}
-              >
-                Sign In
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                onClick={() => router.push('/auth/signup')}
-              >
-                Get Started
-              </Button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-gray-600 hover:text-blue-600"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-100">
-              <div className="flex flex-col space-y-4">
-                <Link 
-                  href="/jobs" 
-                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Browse Jobs
-                </Link>
-                <Link 
-                  href="/about" 
-                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  About
-                </Link>
-                <Link 
-                  href="/contact" 
-                  className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Contact
-                </Link>
-                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100">
-                  <Button 
-                    variant="ghost" 
-                    className="text-gray-600 hover:text-blue-600 justify-start"
-                    onClick={() => {
-                      router.push('/auth/signin')
-                      setIsMobileMenuOpen(false)
-                    }}
-                  >
-                    Sign In
-                  </Button>
-                  <Button 
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
-                    onClick={() => {
-                      router.push('/auth/signup')
-                      setIsMobileMenuOpen(false)
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
+      <Header variant="home" showBackground={false} />
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative pt-20 pb-20 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="hero-title">
-            <Badge variant="secondary" className="mb-6 text-blue-600 bg-blue-100 hover:bg-blue-200">
+            <Badge variant="secondary" className="mb-6 text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors duration-200">
               <Users className="w-4 h-4 mr-2" />
               Connecting Healthcare Professionals
             </Badge>
@@ -258,28 +284,10 @@ export default function HomePage() {
           </h1>
           
           <p className="hero-subtitle text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            The premier platform connecting top respiratory therapy talent with leading healthcare facilities across the nation.
+            The premier platform connecting top radiologic technologist talent with leading healthcare facilities across the nation.
           </p>
           
-          <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              onClick={() => router.push('/auth/signup')}
-            >
-              Find Your Next Role
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 text-lg font-semibold transition-all duration-300"
-              onClick={() => router.push('/auth/signup')}
-            >
-              <Building className="mr-2 w-5 h-5" />
-              Post a Position
-            </Button>
-          </div>
+          {renderHeroButtons()}
         </div>
         
         {/* Background decoration */}
@@ -299,8 +307,8 @@ export default function HomePage() {
               { icon: MapPin, number: '50', label: 'States Served' },
               { icon: CheckCircle, number: '98%', label: 'Satisfaction Rate' }
             ].map((stat, index) => (
-              <div key={index} className="stat-item text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div key={index} className="stat-item text-center group">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <stat.icon className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
@@ -319,7 +327,7 @@ export default function HomePage() {
               Why Choose RT Direct?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We understand the unique needs of respiratory therapy professionals and the facilities that depend on them.
+              We understand the unique needs of radiologic technologist professionals and the facilities that depend on them.
             </p>
           </div>
           
@@ -328,7 +336,7 @@ export default function HomePage() {
               {
                 icon: Stethoscope,
                 title: 'Specialized Focus',
-                description: 'Exclusively for respiratory therapy professionals and positions.',
+                description: 'Exclusively for radiologic technologist professionals and positions.',
                 color: 'from-blue-500 to-cyan-500'
               },
               {
@@ -362,7 +370,7 @@ export default function HomePage() {
                 color: 'from-yellow-500 to-orange-500'
               }
             ].map((feature, index) => (
-              <Card key={index} className="feature-card group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm hover:bg-white">
+              <Card key={index} className="feature-card group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm hover:bg-white hover:scale-105">
                 <CardHeader className="text-center pb-4">
                   <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                     <feature.icon className="w-8 h-8 text-white" />
@@ -391,26 +399,51 @@ export default function HomePage() {
               Ready to Take the Next Step in Your RT Career?
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of respiratory therapy professionals who have found their perfect match through RT Direct.
+              Join thousands of radiologic technologist professionals who have found their perfect match through RT Direct.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => router.push('/auth/signup')}
-              >
-                Get Started Today
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg font-semibold transition-all duration-300"
-                onClick={() => router.push('/jobs')}
-              >
-                Browse Opportunities
-              </Button>
+              {!isAuthenticated ? (
+                <>
+                  <Button 
+                    size="lg" 
+                    variant="secondary"
+                    className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    onClick={() => router.push('/auth/signup')}
+                  >
+                    Get Started Today
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105"
+                    onClick={() => router.push('/jobs')}
+                  >
+                    Browse Opportunities
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    size="lg" 
+                    variant="secondary"
+                    className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                    onClick={() => router.push('/dashboard')}
+                  >
+                    <User className="mr-2 w-5 h-5" />
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105"
+                    onClick={() => router.push('/jobs')}
+                  >
+                    Browse Opportunities
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
