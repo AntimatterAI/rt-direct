@@ -40,7 +40,7 @@ export default function HomePage() {
   const statsRef = useRef<HTMLDivElement>(null)
   const ctaRef = useRef<HTMLDivElement>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<{ role: string; first_name?: string; company_name?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {

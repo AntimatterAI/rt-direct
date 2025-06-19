@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import PageLayout from '@/components/shared/PageLayout'
@@ -17,18 +17,15 @@ import {
   Plus, 
   Edit, 
   Eye, 
-  MoreHorizontal,
   Calendar,
   MapPin,
   DollarSign,
   Clock,
   CheckCircle,
   AlertCircle,
-  Building,
   Loader2,
   TrendingUp,
-  Star,
-  ArrowRight
+  Star
 } from 'lucide-react'
 
 interface Job {
@@ -53,17 +50,17 @@ export default function EmployerJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<{ role: string } | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
   useEffect(() => {
     checkAuthAndLoadJobs()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     filterJobs()
-  }, [jobs, searchTerm, statusFilter])
+  }, [jobs, searchTerm, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function checkAuthAndLoadJobs() {
     try {
@@ -109,8 +106,8 @@ export default function EmployerJobsPage() {
       const jobsWithCounts = data?.map(job => ({
         ...job,
         application_count: job.applications?.length || 0,
-        pending_count: job.applications?.filter((app: any) => app.status === 'pending').length || 0,
-        approved_count: job.applications?.filter((app: any) => app.status === 'hired').length || 0
+        pending_count: job.applications?.filter((app: { status: string }) => app.status === 'pending').length || 0,
+        approved_count: job.applications?.filter((app: { status: string }) => app.status === 'hired').length || 0
       })) || []
 
       setJobs(jobsWithCounts)

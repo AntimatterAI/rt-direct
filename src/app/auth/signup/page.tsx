@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import PageLayout from '@/components/shared/PageLayout'
 import { signUp } from '@/lib/auth'
 import { 
@@ -95,9 +94,10 @@ export default function SignUpPage() {
         lastName: formData.lastName
       })
       router.push('/dashboard')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign up error:', error)
-      setError(error.message || 'An error occurred during sign up')
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during sign up'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

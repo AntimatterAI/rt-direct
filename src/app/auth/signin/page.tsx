@@ -44,9 +44,10 @@ export default function SignInPage() {
     try {
       await signIn(formData.email, formData.password)
       router.push('/dashboard')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign in error:', error)
-      setError(error.message || 'Invalid email or password')
+      const errorMessage = error instanceof Error ? error.message : 'Invalid email or password'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

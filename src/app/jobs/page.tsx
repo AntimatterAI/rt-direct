@@ -11,15 +11,12 @@ import JobMap from '@/components/JobMap'
 import { supabase } from '@/lib/supabase'
 import { 
   MapPin, 
-  Clock, 
   DollarSign, 
   Building, 
   Search, 
   Filter,
-  Calendar,
   ArrowRight,
   Briefcase,
-  Star,
   Users,
   Shield,
   Heart,
@@ -69,7 +66,7 @@ export default function JobsPage() {
 
   useEffect(() => {
     filterJobs()
-  }, [jobs, searchTerm, locationFilter, typeFilter])
+  }, [jobs, searchTerm, locationFilter, typeFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadJobs() {
     try {

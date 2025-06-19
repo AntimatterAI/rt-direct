@@ -12,8 +12,6 @@ import {
   Building, 
   Briefcase, 
   FileText, 
-  MapPin, 
-  Calendar,
   Clock,
   TrendingUp,
   Users,
@@ -22,9 +20,7 @@ import {
   Star,
   ArrowRight,
   PlusCircle,
-  Settings,
-  Bell,
-  Heart
+  Settings
 } from 'lucide-react'
 
 interface UserProfile {
@@ -63,7 +59,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadUserProfile()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadUserProfile() {
     try {

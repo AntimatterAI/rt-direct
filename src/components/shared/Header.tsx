@@ -22,11 +22,11 @@ interface HeaderProps {
   showBackground?: boolean
 }
 
-export default function Header({ variant = 'app', showBackground = true }: HeaderProps) {
+export default function Header({ showBackground = true }: HeaderProps) {
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<{ role: string; first_name?: string; company_name?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {

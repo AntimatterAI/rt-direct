@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import PageLayout from '@/components/shared/PageLayout'
@@ -103,7 +103,7 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     filterApplications()
-  }, [applications, searchTerm, statusFilter])
+  }, [applications, searchTerm, statusFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function filterApplications() {
     let filtered = applications
