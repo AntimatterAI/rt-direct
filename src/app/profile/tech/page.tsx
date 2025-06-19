@@ -311,313 +311,314 @@ export default function TechProfilePage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-        {/* Profile Header */}
-        <Card className="mb-8 bg-white/70 backdrop-blur-sm border-0 shadow-xl">
-          <CardContent className="p-8">
-            <div className="flex items-center space-x-6">
-              <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl flex items-center justify-center">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Profile" className="w-24 h-24 rounded-2xl object-cover" />
-                ) : (
-                  <Stethoscope className="w-12 h-12 text-white" />
-                )}
-              </div>
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {profile?.first_name} {profile?.last_name}
-                </h1>
-                <p className="text-lg text-blue-600 mb-2">Radiologic Technologist</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Award className="w-4 h-4" />
-                    <span>{professionalInfo.experience_years} years experience</span>
+            {/* Profile Header */}
+            <Card className="mb-8 bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+              <CardContent className="p-8">
+                <div className="flex items-center space-x-6">
+                  <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl flex items-center justify-center">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="Profile" className="w-24 h-24 rounded-2xl object-cover" />
+                    ) : (
+                      <Stethoscope className="w-12 h-12 text-white" />
+                    )}
                   </div>
-                  {personalInfo.location && (
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{personalInfo.location}</span>
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      {profile?.first_name} {profile?.last_name}
+                    </h1>
+                    <p className="text-lg text-blue-600 mb-2">Radiologic Technologist</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className="flex items-center space-x-1">
+                        <Award className="w-4 h-4" />
+                        <span>{professionalInfo.experience_years} years experience</span>
+                      </div>
+                      {personalInfo.location && (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{personalInfo.location}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  <Button variant="outline" className="flex items-center space-x-2">
+                    <Camera className="w-4 h-4" />
+                    <span>Change Photo</span>
+                  </Button>
                 </div>
-              </div>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <Camera className="w-4 h-4" />
-                <span>Change Photo</span>
-              </Button>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Personal Information */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    <span>Personal Information</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="first_name">First Name</Label>
+                      <Input
+                        id="first_name"
+                        value={personalInfo.first_name}
+                        onChange={(e) => setPersonalInfo(prev => ({ ...prev, first_name: e.target.value }))}
+                        disabled={!isEditing}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="last_name">Last Name</Label>
+                      <Input
+                        id="last_name"
+                        value={personalInfo.last_name}
+                        onChange={(e) => setPersonalInfo(prev => ({ ...prev, last_name: e.target.value }))}
+                        disabled={!isEditing}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={personalInfo.email}
+                      disabled
+                      className="mt-1 bg-gray-50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      value={personalInfo.phone}
+                      onChange={(e) => setPersonalInfo(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={!isEditing}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={personalInfo.location}
+                      onChange={(e) => setPersonalInfo(prev => ({ ...prev, location: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="City, State"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="bio">Professional Bio</Label>
+                    <Textarea
+                      id="bio"
+                      value={personalInfo.bio}
+                      onChange={(e) => setPersonalInfo(prev => ({ ...prev, bio: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="Tell us about your experience and goals..."
+                      className="mt-1"
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Professional Information */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Award className="w-5 h-5 text-green-600" />
+                    <span>Professional Details</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="experience">Years of Experience</Label>
+                    <Input
+                      id="experience"
+                      type="number"
+                      value={professionalInfo.experience_years}
+                      onChange={(e) => setProfessionalInfo(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))}
+                      disabled={!isEditing}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="travel_radius">Travel Radius (miles)</Label>
+                    <Input
+                      id="travel_radius"
+                      type="number"
+                      value={professionalInfo.travel_radius}
+                      onChange={(e) => setProfessionalInfo(prev => ({ ...prev, travel_radius: parseInt(e.target.value) || 0 }))}
+                      disabled={!isEditing}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Resume URL</Label>
+                    <Input
+                      value={professionalInfo.resume_url}
+                      onChange={(e) => setProfessionalInfo(prev => ({ ...prev, resume_url: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="https://..."
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Portfolio URL</Label>
+                    <Input
+                      value={professionalInfo.portfolio_url}
+                      onChange={(e) => setProfessionalInfo(prev => ({ ...prev, portfolio_url: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="https://..."
+                      className="mt-1"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Certifications */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Award className="w-5 h-5 text-purple-600" />
+                    <span>Certifications</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {isEditing && (
+                      <div className="flex space-x-2">
+                        <Select value={newCertification} onValueChange={setNewCertification}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Add certification..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {commonCertifications.map(cert => (
+                              <SelectItem key={cert} value={cert}>{cert}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button onClick={addCertification} size="sm">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {professionalInfo.certifications.map(cert => (
+                        <Badge 
+                          key={cert} 
+                          className="bg-purple-100 text-purple-800 px-3 py-1"
+                        >
+                          {cert}
+                          {isEditing && (
+                            <button 
+                              onClick={() => removeCertification(cert)}
+                              className="ml-2 text-purple-600 hover:text-purple-800"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Specializations */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Stethoscope className="w-5 h-5 text-blue-600" />
+                    <span>Specializations</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {isEditing && (
+                      <div className="flex space-x-2">
+                        <Select value={newSpecialization} onValueChange={setNewSpecialization}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Add specialization..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {commonSpecializations.map(spec => (
+                              <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button onClick={addSpecialization} size="sm">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {professionalInfo.specializations.map(spec => (
+                        <Badge 
+                          key={spec} 
+                          className="bg-blue-100 text-blue-800 px-3 py-1"
+                        >
+                          {spec}
+                          {isEditing && (
+                            <button 
+                              onClick={() => removeSpecialization(spec)}
+                              className="ml-2 text-blue-600 hover:text-blue-800"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Personal Information */}
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <span>Personal Information</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Input
-                    id="first_name"
-                    value={personalInfo.first_name}
-                    onChange={(e) => setPersonalInfo(prev => ({ ...prev, first_name: e.target.value }))}
-                    disabled={!isEditing}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Input
-                    id="last_name"
-                    value={personalInfo.last_name}
-                    onChange={(e) => setPersonalInfo(prev => ({ ...prev, last_name: e.target.value }))}
-                    disabled={!isEditing}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={personalInfo.email}
-                  disabled
-                  className="mt-1 bg-gray-50"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={personalInfo.phone}
-                  onChange={(e) => setPersonalInfo(prev => ({ ...prev, phone: e.target.value }))}
-                  disabled={!isEditing}
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={personalInfo.location}
-                  onChange={(e) => setPersonalInfo(prev => ({ ...prev, location: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="City, State"
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="bio">Professional Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={personalInfo.bio}
-                  onChange={(e) => setPersonalInfo(prev => ({ ...prev, bio: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="Tell us about your experience and goals..."
-                  className="mt-1"
-                  rows={4}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Professional Information */}
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="w-5 h-5 text-green-600" />
-                <span>Professional Details</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="experience">Years of Experience</Label>
-                <Input
-                  id="experience"
-                  type="number"
-                  value={professionalInfo.experience_years}
-                  onChange={(e) => setProfessionalInfo(prev => ({ ...prev, experience_years: parseInt(e.target.value) || 0 }))}
-                  disabled={!isEditing}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="travel_radius">Travel Radius (miles)</Label>
-                <Input
-                  id="travel_radius"
-                  type="number"
-                  value={professionalInfo.travel_radius}
-                  onChange={(e) => setProfessionalInfo(prev => ({ ...prev, travel_radius: parseInt(e.target.value) || 0 }))}
-                  disabled={!isEditing}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label>Resume URL</Label>
-                <Input
-                  value={professionalInfo.resume_url}
-                  onChange={(e) => setProfessionalInfo(prev => ({ ...prev, resume_url: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="https://..."
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label>Portfolio URL</Label>
-                <Input
-                  value={professionalInfo.portfolio_url}
-                  onChange={(e) => setProfessionalInfo(prev => ({ ...prev, portfolio_url: e.target.value }))}
-                  disabled={!isEditing}
-                  placeholder="https://..."
-                  className="mt-1"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Certifications */}
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="w-5 h-5 text-purple-600" />
-                <span>Certifications</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {isEditing && (
-                  <div className="flex space-x-2">
-                    <Select value={newCertification} onValueChange={setNewCertification}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Add certification..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {commonCertifications.map(cert => (
-                          <SelectItem key={cert} value={cert}>{cert}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={addCertification} size="sm">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="flex flex-wrap gap-2">
-                  {professionalInfo.certifications.map(cert => (
-                    <Badge 
-                      key={cert} 
-                      className="bg-purple-100 text-purple-800 px-3 py-1"
-                    >
-                      {cert}
-                      {isEditing && (
-                        <button 
-                          onClick={() => removeCertification(cert)}
-                          className="ml-2 text-purple-600 hover:text-purple-800"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Specializations */}
-          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Stethoscope className="w-5 h-5 text-blue-600" />
-                <span>Specializations</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {isEditing && (
-                  <div className="flex space-x-2">
-                    <Select value={newSpecialization} onValueChange={setNewSpecialization}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Add specialization..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {commonSpecializations.map(spec => (
-                          <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={addSpecialization} size="sm">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="flex flex-wrap gap-2">
-                  {professionalInfo.specializations.map(spec => (
-                    <Badge 
-                      key={spec} 
-                      className="bg-blue-100 text-blue-800 px-3 py-1"
-                    >
-                      {spec}
-                      {isEditing && (
-                        <button 
-                          onClick={() => removeSpecialization(spec)}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Preferred Shifts */}
-        <Card className="mt-8 bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-orange-600" />
-              <span>Preferred Shifts</span>
-            </CardTitle>
-                            <CardDescription>
+            {/* Preferred Shifts */}
+            <Card className="mt-8 bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5 text-orange-600" />
+                  <span>Preferred Shifts</span>
+                </CardTitle>
+                <CardDescription>
                   Select the shifts you&apos;re available to work
                 </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {shiftOptions.map(shift => (
-                <button
-                  key={shift}
-                  onClick={() => isEditing && toggleShift(shift)}
-                  disabled={!isEditing}
-                  className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
-                    professionalInfo.preferred_shifts.includes(shift)
-                      ? 'border-orange-500 bg-orange-50 text-orange-700'
-                      : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-orange-300'
-                  } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
-                >
-                  {shift}
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {shiftOptions.map(shift => (
+                    <button
+                      key={shift}
+                      onClick={() => isEditing && toggleShift(shift)}
+                      disabled={!isEditing}
+                      className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                        professionalInfo.preferred_shifts.includes(shift)
+                          ? 'border-orange-500 bg-orange-50 text-orange-700'
+                          : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-orange-300'
+                      } ${isEditing ? 'cursor-pointer' : 'cursor-default'}`}
+                    >
+                      {shift}
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </PageLayout>

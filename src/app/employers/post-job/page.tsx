@@ -598,454 +598,455 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
           </div>
 
           <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Job Details */}
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Briefcase className="w-5 h-5 text-blue-600" />
-                  <span>Job Details</span>
-                </CardTitle>
-                <CardDescription>
-                  Provide the basic information about this position
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Job Title *</Label>
-                  <Input
-                    id="title"
-                    value={jobData.title}
-                    onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Radiologic Technologist - CT Specialist"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="company_name">Company Name</Label>
-                    <Input
-                      id="company_name"
-                      value={jobData.company_name}
-                      onChange={(e) => setJobData(prev => ({ ...prev, company_name: e.target.value }))}
-                      placeholder="Your Healthcare Facility"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="department">Department</Label>
-                    <Select 
-                      value={jobData.department} 
-                      onValueChange={(value) => setJobData(prev => ({ ...prev, department: value }))}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departmentOptions.map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <Label htmlFor="location">Location *</Label>
-                  <div className="relative mt-1">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <Input
-                      id="location"
-                      value={locationSearch || jobData.location}
-                      onChange={(e) => {
-                        setLocationSearch(e.target.value)
-                                                 if (!e.target.value) {
-                           setJobData(prev => ({ ...prev, location: '', formatted_address: '', latitude: null, longitude: null }))
-                         }
-                       }}
-                       onFocus={() => setLocationSearch(jobData.location)}
-                       placeholder="Search for city, state..."
-                       className="pl-10"
-                       disabled={isGeocodingLocation}
-                     />
-                     {isGeocodingLocation && (
-                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                         <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                       </div>
-                     )}
-                                         {showLocationDropdown && filteredLocations.length > 0 && (
-                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                         {filteredLocations.map((location, index) => (
-                           <button
-                             key={location.place_id || index}
-                             type="button"
-                             className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                             onClick={() => handleLocationSelect(location)}
-                           >
-                             <div className="flex items-center">
-                               <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-                               {location.description}
-                             </div>
-                           </button>
-                         ))}
-                       </div>
-                     )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label>Work Type</Label>
-                    <Select 
-                      value={jobData.work_type} 
-                      onValueChange={(value) => setJobData(prev => ({ ...prev, work_type: value }))}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workTypeOptions.map(type => (
-                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Employment Type</Label>
-                    <Select 
-                      value={jobData.employment_type} 
-                      onValueChange={(value) => setJobData(prev => ({ ...prev, employment_type: value }))}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employmentTypeOptions.map(type => (
-                          <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Experience Level</Label>
-                    <Select 
-                      value={jobData.experience_level} 
-                      onValueChange={(value) => setJobData(prev => ({ ...prev, experience_level: value }))}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {experienceLevelOptions.map(level => (
-                          <SelectItem key={level} value={level}>{level}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Dynamic Pay Structure based on Employment Type */}
-                <div>
-                  <Label>
-                    Pay Structure - {employmentTypeOptions.find(t => t.value === jobData.employment_type)?.label}
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                {/* Job Details */}
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Briefcase className="w-5 h-5 text-blue-600" />
+                      <span>Job Details</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Provide the basic information about this position
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="pay_rate" className="text-sm">{payLabels.min}</Label>
+                      <Label htmlFor="title">Job Title *</Label>
                       <Input
-                        id="pay_rate"
-                        type="number"
-                        min="0"
-                        step={jobData.pay_type === 'annual' ? '1000' : '0.01'}
-                        value={jobData.pay_rate}
-                        onChange={(e) => setJobData(prev => ({ ...prev, pay_rate: e.target.value }))}
-                        placeholder={payLabels.placeholder}
+                        id="title"
+                        value={jobData.title}
+                        onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="e.g., Radiologic Technologist - CT Specialist"
                         className="mt-1"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="pay_rate_max" className="text-sm">{payLabels.max}</Label>
-                      <Input
-                        id="pay_rate_max"
-                        type="number"
-                        min="0"
-                        step={jobData.pay_type === 'annual' ? '1000' : '0.01'}
-                        value={jobData.pay_rate_max}
-                        onChange={(e) => setJobData(prev => ({ ...prev, pay_rate_max: e.target.value }))}
-                        placeholder={payLabels.maxPlaceholder}
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {jobData.employment_type === 'contract' && 'Perfect for temporary assignments (1-2 weeks)'}
-                    {jobData.employment_type === 'per-diem' && 'Ideal for flexible, as-needed coverage'}
-                    {jobData.employment_type === 'full-time' && 'Annual salary for permanent positions'}
-                    {jobData.employment_type === 'part-time' && 'Hourly rate for part-time schedules'}
-                  </div>
-                </div>
 
-                {(jobData.employment_type === 'contract' || jobData.employment_type === 'per-diem') && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="company_name">Company Name</Label>
+                        <Input
+                          id="company_name"
+                          value={jobData.company_name}
+                          onChange={(e) => setJobData(prev => ({ ...prev, company_name: e.target.value }))}
+                          placeholder="Your Healthcare Facility"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="department">Department</Label>
+                        <Select 
+                          value={jobData.department} 
+                          onValueChange={(value) => setJobData(prev => ({ ...prev, department: value }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departmentOptions.map(dept => (
+                              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <Label htmlFor="location">Location *</Label>
+                      <div className="relative mt-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <Input
+                          id="location"
+                          value={locationSearch || jobData.location}
+                          onChange={(e) => {
+                            setLocationSearch(e.target.value)
+                            if (!e.target.value) {
+                              setJobData(prev => ({ ...prev, location: '', formatted_address: '', latitude: null, longitude: null }))
+                            }
+                          }}
+                          onFocus={() => setLocationSearch(jobData.location)}
+                          placeholder="Search for city, state..."
+                          className="pl-10"
+                          disabled={isGeocodingLocation}
+                        />
+                        {isGeocodingLocation && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                        {showLocationDropdown && filteredLocations.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                            {filteredLocations.map((location, index) => (
+                              <button
+                                key={location.place_id || index}
+                                type="button"
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                                onClick={() => handleLocationSelect(location)}
+                              >
+                                <div className="flex items-center">
+                                  <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                                  {location.description}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Work Type</Label>
+                        <Select 
+                          value={jobData.work_type} 
+                          onValueChange={(value) => setJobData(prev => ({ ...prev, work_type: value }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {workTypeOptions.map(type => (
+                              <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Employment Type</Label>
+                        <Select 
+                          value={jobData.employment_type} 
+                          onValueChange={(value) => setJobData(prev => ({ ...prev, employment_type: value }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {employmentTypeOptions.map(type => (
+                              <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Experience Level</Label>
+                        <Select 
+                          value={jobData.experience_level} 
+                          onValueChange={(value) => setJobData(prev => ({ ...prev, experience_level: value }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {experienceLevelOptions.map(level => (
+                              <SelectItem key={level} value={level}>{level}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Dynamic Pay Structure based on Employment Type */}
                     <div>
-                      <Label htmlFor="duration">Assignment Duration</Label>
+                      <Label>
+                        Pay Structure - {employmentTypeOptions.find(t => t.value === jobData.employment_type)?.label}
+                      </Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div>
+                          <Label htmlFor="pay_rate" className="text-sm">{payLabels.min}</Label>
+                          <Input
+                            id="pay_rate"
+                            type="number"
+                            min="0"
+                            step={jobData.pay_type === 'annual' ? '1000' : '0.01'}
+                            value={jobData.pay_rate}
+                            onChange={(e) => setJobData(prev => ({ ...prev, pay_rate: e.target.value }))}
+                            placeholder={payLabels.placeholder}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="pay_rate_max" className="text-sm">{payLabels.max}</Label>
+                          <Input
+                            id="pay_rate_max"
+                            type="number"
+                            min="0"
+                            step={jobData.pay_type === 'annual' ? '1000' : '0.01'}
+                            value={jobData.pay_rate_max}
+                            onChange={(e) => setJobData(prev => ({ ...prev, pay_rate_max: e.target.value }))}
+                            placeholder={payLabels.maxPlaceholder}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {jobData.employment_type === 'contract' && 'Perfect for temporary assignments (1-2 weeks)'}
+                        {jobData.employment_type === 'per-diem' && 'Ideal for flexible, as-needed coverage'}
+                        {jobData.employment_type === 'full-time' && 'Annual salary for permanent positions'}
+                        {jobData.employment_type === 'part-time' && 'Hourly rate for part-time schedules'}
+                      </div>
+                    </div>
+
+                    {(jobData.employment_type === 'contract' || jobData.employment_type === 'per-diem') && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="duration">Assignment Duration</Label>
+                          <Input
+                            id="duration"
+                            value={jobData.duration}
+                            onChange={(e) => setJobData(prev => ({ ...prev, duration: e.target.value }))}
+                            placeholder="e.g., 2 weeks, 1 month, 13 weeks"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="start_date">Start Date</Label>
+                          <Input
+                            id="start_date"
+                            type="date"
+                            value={jobData.start_date}
+                            onChange={(e) => setJobData(prev => ({ ...prev, start_date: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label htmlFor="description">Job Description *</Label>
+                      <Textarea
+                        id="description"
+                        value={jobData.description}
+                        onChange={(e) => setJobData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe the role, responsibilities, and what makes this position great..."
+                        className="mt-1"
+                        rows={6}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="equipment">Equipment & Technology</Label>
+                      <Textarea
+                        id="equipment"
+                        value={jobData.equipment}
+                        onChange={(e) => setJobData(prev => ({ ...prev, equipment: e.target.value }))}
+                        placeholder="List the imaging equipment, software, and technology candidates will work with..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Requirements */}
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Requirements</CardTitle>
+                    <CardDescription>
+                      Add the qualifications and requirements for this position
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex space-x-2">
+                      <Select value={newRequirement} onValueChange={setNewRequirement}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Add requirement from common list or type below..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {commonRequirements.map(req => (
+                            <SelectItem key={req} value={req}>{req}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={addRequirement} size="sm">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex space-x-2">
                       <Input
-                        id="duration"
-                        value={jobData.duration}
-                        onChange={(e) => setJobData(prev => ({ ...prev, duration: e.target.value }))}
-                        placeholder="e.g., 2 weeks, 1 month, 13 weeks"
+                        value={newRequirement}
+                        onChange={(e) => setNewRequirement(e.target.value)}
+                        placeholder="Or type custom requirement..."
+                        className="flex-1"
+                        onKeyPress={(e) => e.key === 'Enter' && addRequirement()}
+                      />
+                      <Button onClick={addRequirement} size="sm">
+                        Add
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {jobData.requirements.map(req => (
+                        <Badge key={req} className="bg-blue-100 text-blue-800 px-3 py-1">
+                          {req}
+                          <button 
+                            onClick={() => removeRequirement(req)}
+                            className="ml-2 text-blue-600 hover:text-blue-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Benefits */}
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Benefits & Perks</CardTitle>
+                    <CardDescription>
+                      Highlight the benefits and perks that come with this position
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex space-x-2">
+                      <Select value={newBenefit} onValueChange={setNewBenefit}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Add benefit from common list or type below..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {commonBenefits.map(benefit => (
+                            <SelectItem key={benefit} value={benefit}>{benefit}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={addBenefit} size="sm">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Input
+                        value={newBenefit}
+                        onChange={(e) => setNewBenefit(e.target.value)}
+                        placeholder="Or type custom benefit..."
+                        className="flex-1"
+                        onKeyPress={(e) => e.key === 'Enter' && addBenefit()}
+                      />
+                      <Button onClick={addBenefit} size="sm">
+                        Add
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {jobData.benefits.map(benefit => (
+                        <Badge key={benefit} className="bg-green-100 text-green-800 px-3 py-1">
+                          {benefit}
+                          <button 
+                            onClick={() => removeBenefit(benefit)}
+                            className="ml-2 text-green-600 hover:text-green-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Shifts */}
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                      <span>Available Shifts</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {shiftOptions.map(shift => (
+                        <button
+                          key={shift}
+                          onClick={() => toggleShift(shift)}
+                          className={`w-full p-2 text-left rounded-lg border-2 text-sm transition-colors ${
+                            jobData.shifts.includes(shift)
+                              ? 'border-orange-500 bg-orange-50 text-orange-700'
+                              : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-orange-300'
+                          }`}
+                        >
+                          {shift}
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Contact & Application */}
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Application Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="contact_email">Contact Email</Label>
+                      <Input
+                        id="contact_email"
+                        type="email"
+                        value={jobData.contact_email}
+                        onChange={(e) => setJobData(prev => ({ ...prev, contact_email: e.target.value }))}
+                        placeholder="hr@company.com"
                         className="mt-1"
                       />
                     </div>
+
                     <div>
-                      <Label htmlFor="start_date">Start Date</Label>
+                      <Label htmlFor="application_deadline">Application Deadline</Label>
                       <Input
-                        id="start_date"
+                        id="application_deadline"
                         type="date"
-                        value={jobData.start_date}
-                        onChange={(e) => setJobData(prev => ({ ...prev, start_date: e.target.value }))}
+                        value={jobData.application_deadline}
+                        onChange={(e) => setJobData(prev => ({ ...prev, application_deadline: e.target.value }))}
                         className="mt-1"
                       />
                     </div>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
 
-                <div>
-                  <Label htmlFor="description">Job Description *</Label>
-                  <Textarea
-                    id="description"
-                    value={jobData.description}
-                    onChange={(e) => setJobData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Describe the role, responsibilities, and what makes this position great..."
-                    className="mt-1"
-                    rows={6}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="equipment">Equipment & Technology</Label>
-                  <Textarea
-                    id="equipment"
-                    value={jobData.equipment}
-                    onChange={(e) => setJobData(prev => ({ ...prev, equipment: e.target.value }))}
-                    placeholder="List the imaging equipment, software, and technology candidates will work with..."
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Requirements */}
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle>Requirements</CardTitle>
-                <CardDescription>
-                  Add the qualifications and requirements for this position
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex space-x-2">
-                  <Select value={newRequirement} onValueChange={setNewRequirement}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Add requirement from common list or type below..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {commonRequirements.map(req => (
-                        <SelectItem key={req} value={req}>{req}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={addRequirement} size="sm">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Input
-                    value={newRequirement}
-                    onChange={(e) => setNewRequirement(e.target.value)}
-                    placeholder="Or type custom requirement..."
-                    className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && addRequirement()}
-                  />
-                  <Button onClick={addRequirement} size="sm">
-                    Add
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {jobData.requirements.map(req => (
-                    <Badge key={req} className="bg-blue-100 text-blue-800 px-3 py-1">
-                      {req}
-                      <button 
-                        onClick={() => removeRequirement(req)}
-                        className="ml-2 text-blue-600 hover:text-blue-800"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Benefits */}
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle>Benefits & Perks</CardTitle>
-                <CardDescription>
-                  Highlight the benefits and perks that come with this position
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex space-x-2">
-                  <Select value={newBenefit} onValueChange={setNewBenefit}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Add benefit from common list or type below..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {commonBenefits.map(benefit => (
-                        <SelectItem key={benefit} value={benefit}>{benefit}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={addBenefit} size="sm">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Input
-                    value={newBenefit}
-                    onChange={(e) => setNewBenefit(e.target.value)}
-                    placeholder="Or type custom benefit..."
-                    className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && addBenefit()}
-                  />
-                  <Button onClick={addBenefit} size="sm">
-                    Add
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {jobData.benefits.map(benefit => (
-                    <Badge key={benefit} className="bg-green-100 text-green-800 px-3 py-1">
-                      {benefit}
-                      <button 
-                        onClick={() => removeBenefit(benefit)}
-                        className="ml-2 text-green-600 hover:text-green-800"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                {/* Preview */}
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Job Preview</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="font-semibold">{jobData.title || 'Job Title'}</div>
+                    <div className="text-gray-600">{jobData.company_name || 'Company Name'}</div>
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <MapPin className="w-3 h-3" />
+                      <span>{jobData.location || 'Location'}</span>
+                    </div>
+                    {jobData.pay_rate && (
+                      <div className="flex items-center space-x-2 text-green-600">
+                        <DollarSign className="w-3 h-3" />
+                        <span>
+                          ${jobData.pay_rate}{jobData.pay_rate_max ? ` - $${jobData.pay_rate_max}` : ''} {jobData.pay_type}
+                        </span>
+                      </div>
+                    )}
+                    {jobData.duration && (
+                      <div className="text-blue-600 text-xs">
+                        Duration: {jobData.duration}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary">
+                        {employmentTypeOptions.find(t => t.value === jobData.employment_type)?.label || jobData.employment_type}
+                      </Badge>
+                      <Badge variant="secondary">
+                        {workTypeOptions.find(t => t.value === jobData.work_type)?.label || jobData.work_type}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Shifts */}
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5 text-orange-600" />
-                  <span>Available Shifts</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {shiftOptions.map(shift => (
-                    <button
-                      key={shift}
-                      onClick={() => toggleShift(shift)}
-                      className={`w-full p-2 text-left rounded-lg border-2 text-sm transition-colors ${
-                        jobData.shifts.includes(shift)
-                          ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-orange-300'
-                      }`}
-                    >
-                      {shift}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Contact & Application */}
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle>Application Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="contact_email">Contact Email</Label>
-                  <Input
-                    id="contact_email"
-                    type="email"
-                    value={jobData.contact_email}
-                    onChange={(e) => setJobData(prev => ({ ...prev, contact_email: e.target.value }))}
-                    placeholder="hr@company.com"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="application_deadline">Application Deadline</Label>
-                  <Input
-                    id="application_deadline"
-                    type="date"
-                    value={jobData.application_deadline}
-                    onChange={(e) => setJobData(prev => ({ ...prev, application_deadline: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Preview */}
-            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle>Job Preview</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="font-semibold">{jobData.title || 'Job Title'}</div>
-                <div className="text-gray-600">{jobData.company_name || 'Company Name'}</div>
-                <div className="flex items-center space-x-2 text-gray-500">
-                  <MapPin className="w-3 h-3" />
-                  <span>{jobData.location || 'Location'}</span>
-                </div>
-                {jobData.pay_rate && (
-                  <div className="flex items-center space-x-2 text-green-600">
-                    <DollarSign className="w-3 h-3" />
-                    <span>
-                      ${jobData.pay_rate}{jobData.pay_rate_max ? ` - $${jobData.pay_rate_max}` : ''} {jobData.pay_type}
-                    </span>
-                  </div>
-                )}
-                {jobData.duration && (
-                  <div className="text-blue-600 text-xs">
-                    Duration: {jobData.duration}
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-1">
-                  <Badge variant="secondary">
-                    {employmentTypeOptions.find(t => t.value === jobData.employment_type)?.label || jobData.employment_type}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {workTypeOptions.find(t => t.value === jobData.work_type)?.label || jobData.work_type}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
         </div>
       </div>
     </PageLayout>
