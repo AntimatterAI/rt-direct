@@ -448,7 +448,7 @@ export default function DashboardPage() {
                 <Button 
                   variant="outline" 
                   className="border-green-200 text-green-700 hover:bg-green-50"
-                  onClick={() => router.push('/profile')}
+                  onClick={() => router.push(`/profile/${userProfile.role}`)}
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   Update Profile

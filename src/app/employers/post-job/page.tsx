@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getCurrentUser, getUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { geocodeAddress, getPlacesAutocomplete } from '@/lib/google-maps'
+import PageLayout from '@/components/shared/PageLayout'
 import { Briefcase, MapPin, DollarSign, Clock, Save, Plus, X, Search } from 'lucide-react'
 
 export default function PostJobPage() {
@@ -546,45 +547,57 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     )
   }
 
   const payLabels = getPayRateLabels()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-green-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                ← Dashboard
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-gray-900">Post New Job</span>
+    <PageLayout>
+      <div className="min-h-screen">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/5 to-purple-400/5 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  Post New Job
+                </h1>
+                <p className="text-gray-600 text-lg">
+                  Create a new radiologic technology position
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                  ← Dashboard
+                </Button>
+                <Button 
+                  onClick={submitJob} 
+                  disabled={isSubmitting || !jobData.title || !jobData.description}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  <span>{isSubmitting ? 'Posting...' : 'Post Job'}</span>
+                </Button>
               </div>
             </div>
-            <Button 
-              onClick={submitJob} 
-              disabled={isSubmitting || !jobData.title || !jobData.description}
-              className="flex items-center space-x-2"
-            >
-              <Save className="w-4 h-4" />
-              <span>{isSubmitting ? 'Posting...' : 'Post Job'}</span>
-            </Button>
           </div>
-        </div>
-      </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Job Details */}
@@ -1033,7 +1046,8 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
             </Card>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 

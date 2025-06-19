@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getCurrentUser, getUserProfile } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import PageLayout from '@/components/shared/PageLayout'
 import { Stethoscope, Award, MapPin, Clock, FileText, Camera, Save, Edit, Plus } from 'lucide-react'
 
 interface TechProfile {
@@ -243,56 +244,73 @@ export default function TechProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold mb-2">Loading Profile...</h2>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold mb-2">Loading Profile...</h2>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-green-50">
-      {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                ← Dashboard
-              </Button>
-              <div className="flex items-center space-x-2">
-                <Stethoscope className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-gray-900">My Profile</span>
+    <PageLayout>
+      <div className="min-h-screen">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/5 to-purple-400/5 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  My Profile
+                </h1>
+                <p className="text-gray-600 text-lg">
+                  Manage your professional information and preferences
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                  ← Dashboard
+                </Button>
+                {!isEditing ? (
+                  <Button 
+                    onClick={() => setIsEditing(true)} 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                ) : (
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={() => {
+                      setIsEditing(false)
+                      loadProfile()
+                    }}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={saveProfile} 
+                      disabled={isSaving} 
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              {!isEditing ? (
-                <Button onClick={() => setIsEditing(true)} className="flex items-center space-x-2">
-                  <Edit className="w-4 h-4" />
-                  <span>Edit Profile</span>
-                </Button>
-              ) : (
-                <div className="flex space-x-2">
-                  <Button variant="outline" onClick={() => {
-                    setIsEditing(false)
-                    loadProfile()
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button onClick={saveProfile} disabled={isSaving} className="flex items-center space-x-2">
-                    <Save className="w-4 h-4" />
-                    <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                  </Button>
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-      </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
         {/* Profile Header */}
         <Card className="mb-8 bg-white/70 backdrop-blur-sm border-0 shadow-xl">
           <CardContent className="p-8">
@@ -600,7 +618,8 @@ export default function TechProfilePage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </PageLayout>
   )
 } 
