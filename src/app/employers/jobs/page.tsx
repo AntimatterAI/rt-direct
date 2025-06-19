@@ -40,6 +40,8 @@ interface Job {
   status: string
   posted_at: string
   application_count?: number
+  pending_count?: number
+  approved_count?: number
   applications?: {
     status: string
   }[]
