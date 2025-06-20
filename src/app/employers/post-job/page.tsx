@@ -526,14 +526,19 @@ ${jobData.company_name ? `Company: ${jobData.company_name}\n` : ''}${jobData.dep
 
       console.log('Submitting job payload:', jobPayload)
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('jobs')
         .insert(jobPayload)
+        .select() // Add select to return the inserted data
+
+      console.log('Insert result:', { data, error })
 
       if (error) {
         console.error('Database error:', error)
         throw error
       }
+
+      console.log('Job posted successfully:', data)
 
       router.push('/employers/jobs?success=Job posted successfully!')
       

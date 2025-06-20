@@ -115,6 +115,8 @@ export default function DashboardPage() {
 
   async function loadEmployerStats(userId: string) {
     try {
+      console.log('Loading employer stats for user ID:', userId)
+      
       // Load jobs for this employer
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
@@ -128,6 +130,8 @@ export default function DashboardPage() {
         `)
         .eq('employer_id', userId)
 
+      console.log('Jobs query result:', { jobsData, jobsError })
+
       if (jobsError) {
         console.error('Error loading jobs:', jobsError)
         return
@@ -135,6 +139,9 @@ export default function DashboardPage() {
 
       const jobs = jobsData || []
       const allApplications = jobs.flatMap(job => job.applications || [])
+
+      console.log('Processed jobs:', jobs)
+      console.log('All applications:', allApplications)
 
       setJobStats({
         total: jobs.length,
