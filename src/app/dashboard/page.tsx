@@ -22,6 +22,7 @@ import {
   PlusCircle,
   Settings
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 interface UserProfile {
   id: string
@@ -72,31 +73,77 @@ export default function DashboardPage() {
       const profile = await getUserProfile()
       setUserProfile(profile)
 
-      // Load actual stats from Supabase - showing demo data for now
+      // Load real stats from database
       if (profile.role === 'tech') {
-        // Demo data - replace with actual application stats from database
-        setApplicationStats({
-          total: 0,
-          pending: 0,
-          reviewed: 0,
-          interview: 0,
-          hired: 0,
-          rejected: 0
-        })
+        await loadTechStats(user.id)
       } else {
-        // Demo data - replace with actual job/application stats from database
-        setJobStats({
-          total: 0,
-          active: 0,
-          totalApplications: 0,
-          pendingApplications: 0
-        })
+        await loadEmployerStats(user.id)
       }
     } catch (error) {
       console.error('Error loading profile:', error)
       router.push('/auth/signin')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function loadTechStats(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .select('status')
+        .eq('tech_id', userId)
+
+      if (error) {
+        console.error('Error loading application stats:', error)
+        return
+      }
+
+      const applications = data || []
+      setApplicationStats({
+        total: applications.length,
+        pending: applications.filter(app => app.status === 'pending').length,
+        reviewed: applications.filter(app => app.status === 'reviewed').length,
+        interview: applications.filter(app => app.status === 'interview').length,
+        hired: applications.filter(app => app.status === 'hired').length,
+        rejected: applications.filter(app => app.status === 'rejected').length
+      })
+    } catch (error) {
+      console.error('Error loading tech stats:', error)
+    }
+  }
+
+  async function loadEmployerStats(userId: string) {
+    try {
+      // Load jobs for this employer
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select(`
+          id,
+          status,
+          applications (
+            id,
+            status
+          )
+        `)
+        .eq('employer_id', userId)
+
+      if (jobsError) {
+        console.error('Error loading jobs:', jobsError)
+        return
+      }
+
+      const jobs = jobsData || []
+      const allApplications = jobs.flatMap(job => job.applications || [])
+
+      setJobStats({
+        total: jobs.length,
+        active: jobs.filter(job => job.status === 'active').length,
+        totalApplications: allApplications.length,
+        pendingApplications: allApplications.filter(app => app.status === 'pending').length
+      })
+    } catch (error) {
+      console.error('Error loading employer stats:', error)
     }
   }
 
@@ -232,7 +279,12 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
               <div>
                 <p className="font-medium text-gray-900">Browse Available Jobs</p>
-                <p className="text-sm text-gray-600">Discover opportunities that match your skills</p>
+                <p className="text-sm text-gray-600">
+                  {applicationStats.total > 0 
+                    ? 'Find more opportunities to advance your career' 
+                    : 'Discover opportunities that match your skills'
+                  }
+                </p>
               </div>
               <Badge className="bg-blue-100 text-blue-800">Browse</Badge>
             </div>
@@ -260,9 +312,18 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
               <div>
                 <p className="font-medium text-gray-900">Application Status</p>
-                <p className="text-sm text-gray-600">Track your applications and their progress</p>
+                <p className="text-sm text-gray-600">
+                  {applicationStats.total > 0 
+                    ? `${applicationStats.pending} applications need attention` 
+                    : 'Track your applications and their progress'
+                  }
+                </p>
               </div>
-              <Badge className="bg-purple-100 text-purple-800">Track</Badge>
+              {applicationStats.pending > 0 ? (
+                <Badge className="bg-yellow-100 text-yellow-800">Updates</Badge>
+              ) : (
+                <Badge className="bg-purple-100 text-purple-800">Track</Badge>
+              )}
             </div>
             <Button 
               variant="outline"
@@ -349,8 +410,13 @@ export default function DashboardPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Response Rate</p>
-                <p className="text-3xl font-bold text-green-600">--</p>
+                <p className="text-sm font-medium text-gray-600">Avg. Applications</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {jobStats.total > 0 
+                    ? Math.round(jobStats.totalApplications / jobStats.total)
+                    : '--'
+                  }
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-green-600" />
@@ -404,9 +470,18 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
               <div>
                 <p className="font-medium text-gray-900">Manage Applications</p>
-                <p className="text-sm text-gray-600">Review and manage candidate applications</p>
+                <p className="text-sm text-gray-600">
+                  {jobStats.pendingApplications > 0 
+                    ? `${jobStats.pendingApplications} candidates waiting for review` 
+                    : 'Review and manage candidate applications'
+                  }
+                </p>
               </div>
-              <Badge className="bg-purple-100 text-purple-800">Manage</Badge>
+              {jobStats.pendingApplications > 0 ? (
+                <Badge className="bg-yellow-100 text-yellow-800">Review</Badge>
+              ) : (
+                <Badge className="bg-purple-100 text-purple-800">Manage</Badge>
+              )}
             </div>
             <Button 
               variant="outline"
