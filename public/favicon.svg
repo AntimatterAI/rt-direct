@@ -6,8 +6,8 @@
       <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
     </linearGradient>
   </defs>
-  <path d="M16 25L12.5 21.5C8.5 17.5 8.5 11.5 12.5 7.5C14.5 5.5 17.5 5.5 19.5 7.5C21.5 5.5 24.5 5.5 26.5 7.5C30.5 11.5 30.5 17.5 26.5 21.5L16 25Z" 
+  <path d="M16 26L10.5 20.5C6.5 16.5 6.5 10.5 10.5 6.5C12.5 4.5 15.5 4.5 17.5 6.5C19.5 4.5 22.5 4.5 24.5 6.5C28.5 10.5 28.5 16.5 24.5 20.5L16 26Z" 
         fill="white" 
         stroke="white" 
-        stroke-width="1"/>
+        stroke-width="0.5"/>
 </svg> 

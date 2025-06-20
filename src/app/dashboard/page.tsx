@@ -72,22 +72,24 @@ export default function DashboardPage() {
       const profile = await getUserProfile()
       setUserProfile(profile)
 
-      // TODO: Load actual stats from your API
+      // Load actual stats from Supabase - showing demo data for now
       if (profile.role === 'tech') {
+        // Demo data - replace with actual application stats from database
         setApplicationStats({
-          total: 5,
-          pending: 2,
-          reviewed: 1,
-          interview: 1,
-          hired: 1,
+          total: 0,
+          pending: 0,
+          reviewed: 0,
+          interview: 0,
+          hired: 0,
           rejected: 0
         })
       } else {
+        // Demo data - replace with actual job/application stats from database
         setJobStats({
-          total: 3,
-          active: 2,
-          totalApplications: 12,
-          pendingApplications: 8
+          total: 0,
+          active: 0,
+          totalApplications: 0,
+          pendingApplications: 0
         })
       }
     } catch (error) {
@@ -229,10 +231,10 @@ export default function DashboardPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
               <div>
-                <p className="font-medium text-gray-900">New Jobs Available</p>
-                <p className="text-sm text-gray-600">15 new positions in your area</p>
+                <p className="font-medium text-gray-900">Browse Available Jobs</p>
+                <p className="text-sm text-gray-600">Discover opportunities that match your skills</p>
               </div>
-              <Badge className="bg-blue-100 text-blue-800">New</Badge>
+              <Badge className="bg-blue-100 text-blue-800">Browse</Badge>
             </div>
             <Button 
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
@@ -257,10 +259,10 @@ export default function DashboardPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
               <div>
-                <p className="font-medium text-gray-900">Recent Activity</p>
-                <p className="text-sm text-gray-600">{applicationStats.pending} applications need attention</p>
+                <p className="font-medium text-gray-900">Application Status</p>
+                <p className="text-sm text-gray-600">Track your applications and their progress</p>
               </div>
-              {applicationStats.pending > 0 && <Badge className="bg-yellow-100 text-yellow-800">Updates</Badge>}
+              <Badge className="bg-purple-100 text-purple-800">Track</Badge>
             </div>
             <Button 
               variant="outline"
@@ -348,7 +350,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Response Rate</p>
-                <p className="text-3xl font-bold text-green-600">85%</p>
+                <p className="text-3xl font-bold text-green-600">--</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-green-600" />
@@ -401,10 +403,10 @@ export default function DashboardPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
               <div>
-                <p className="font-medium text-gray-900">New Applications</p>
-                <p className="text-sm text-gray-600">{jobStats.pendingApplications} candidates waiting for review</p>
+                <p className="font-medium text-gray-900">Manage Applications</p>
+                <p className="text-sm text-gray-600">Review and manage candidate applications</p>
               </div>
-              {jobStats.pendingApplications > 0 && <Badge className="bg-yellow-100 text-yellow-800">Review</Badge>}
+              <Badge className="bg-purple-100 text-purple-800">Manage</Badge>
             </div>
             <Button 
               variant="outline"
