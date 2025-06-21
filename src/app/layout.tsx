@@ -71,7 +71,7 @@ export const metadata: Metadata = {
       { url: "/favicon.svg", sizes: "32x32", type: "image/svg+xml" }
     ],
     apple: [
-      { url: "/apple-touch-icon.png?v=3", sizes: "180x180", type: "image/png" }
+      { url: "/apple-touch-icon.png?v=4", sizes: "180x180", type: "image/png" }
     ],
     other: [
       { rel: "manifest", url: "/site.webmanifest" },
@@ -92,7 +92,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4" />
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="mask-icon" href="/favicon.svg" color="#0A58CA" />
         <meta name="theme-color" content="#0A58CA" />

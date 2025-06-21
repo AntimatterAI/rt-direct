@@ -59,6 +59,22 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
+    // Set page-specific metadata
+    document.title = 'Dashboard - RT Direct | Your Career Hub'
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Manage your radiologic technology career. Track applications, discover opportunities, and advance your healthcare profession.')
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]')
+    if (ogTitle) ogTitle.setAttribute('content', 'Dashboard - RT Direct')
+    
+    const ogDescription = document.querySelector('meta[property="og:description"]')
+    if (ogDescription) ogDescription.setAttribute('content', 'Manage your radiologic technology career. Track applications, discover opportunities, and advance your healthcare profession.')
+    
     loadUserProfile()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

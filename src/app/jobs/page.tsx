@@ -61,6 +61,22 @@ export default function JobsPage() {
   const [showMap, setShowMap] = useState(false)
 
   useEffect(() => {
+    // Set page-specific metadata
+    document.title = 'Browse Jobs - RT Direct | Radiologic Technologist Job Board'
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Discover radiologic technology job opportunities. Browse CT, MRI, X-ray and other imaging positions across the United States.')
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]')
+    if (ogTitle) ogTitle.setAttribute('content', 'Browse Jobs - RT Direct')
+    
+    const ogDescription = document.querySelector('meta[property="og:description"]')
+    if (ogDescription) ogDescription.setAttribute('content', 'Discover radiologic technology job opportunities. Browse CT, MRI, X-ray and other imaging positions across the United States.')
+    
     loadJobs()
   }, [])
 

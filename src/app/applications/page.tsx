@@ -98,6 +98,22 @@ export default function ApplicationsPage() {
   }, [router])
 
   useEffect(() => {
+    // Set page-specific metadata
+    document.title = 'My Applications - RT Direct | Track Your Job Applications'
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Track your radiologic technology job applications. Monitor status updates, interview requests, and hiring decisions all in one place.')
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]')
+    if (ogTitle) ogTitle.setAttribute('content', 'My Applications - RT Direct')
+    
+    const ogDescription = document.querySelector('meta[property="og:description"]')
+    if (ogDescription) ogDescription.setAttribute('content', 'Track your radiologic technology job applications. Monitor status updates, interview requests, and hiring decisions all in one place.')
+    
     loadApplications()
   }, [loadApplications])
 
