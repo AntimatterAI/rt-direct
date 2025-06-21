@@ -39,9 +39,9 @@ export const metadata: Metadata = {
     siteName: "RT Direct",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
+        url: "/icon-512.svg",
+        width: 512,
+        height: 512,
         alt: "RT Direct - Radiologic Technologist Job Board",
       },
     ],
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RT Direct - Radiologic Technologist Job Board",
     description: "The leading platform connecting radiologic technologists with top healthcare facilities.",
-    images: ["/og-image.png"],
+    images: ["/icon-512.svg"],
   },
   robots: {
     index: true,
@@ -66,10 +66,16 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", sizes: "32x32", type: "image/svg+xml" }
+    ],
+    apple: [
+      { url: "/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" }
+    ],
     other: [
       { rel: "manifest", url: "/site.webmanifest" },
+      { rel: "mask-icon", url: "/favicon.svg", color: "#0A58CA" }
     ],
   },
   verification: {
@@ -85,9 +91,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.svg" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
         <link rel="manifest" href="/site.webmanifest" />
+        <link rel="mask-icon" href="/favicon.svg" color="#0A58CA" />
         <meta name="theme-color" content="#0A58CA" />
+        <meta name="msapplication-TileColor" content="#0A58CA" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="RT Direct" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className={inter.className}>{children}</body>
