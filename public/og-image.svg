@@ -1,0 +1,35 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Heart icon background circle -->
+  <circle cx="300" cy="315" r="120" fill="url(#iconGradient)" opacity="0.9"/>
+  
+  <!-- Heart icon -->
+  <path d="M300 390L240 330C180 270 180 180 240 120C270 90 330 90 360 120C390 90 450 90 480 120C540 180 540 270 480 330L300 390Z" 
+        fill="white" 
+        stroke="white" 
+        stroke-width="4"/>
+  
+  <!-- Text content -->
+  <text x="480" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="white">RT Direct</text>
+  <text x="480" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="rgba(255,255,255,0.9)">Radiologic Technologist Job Board</text>
+  <text x="480" y="390" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="rgba(255,255,255,0.8)">Connecting healthcare professionals nationwide</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="950" cy="150" r="60" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="1050" cy="480" r="40" fill="rgba(255,255,255,0.1)"/>
+  <circle cx="150" cy="100" r="30" fill="rgba(255,255,255,0.1)"/>
+  
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A58CA;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#7C3AED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+</svg> 
