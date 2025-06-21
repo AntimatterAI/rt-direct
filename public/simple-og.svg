@@ -1,0 +1,9 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0A58CA"/>
+  <circle cx="300" cy="315" r="120" fill="#ffffff" opacity="0.1"/>
+  <path d="M300 390L240 330C180 270 180 180 240 120C270 90 330 90 360 120C390 90 450 90 480 120C540 180 540 270 480 330L300 390Z" 
+        fill="white"/>
+  <text x="480" y="280" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">RT Direct</text>
+  <text x="480" y="340" font-family="Arial, sans-serif" font-size="36" fill="white">Radiologic Technologist Job Board</text>
+  <text x="480" y="390" font-family="Arial, sans-serif" font-size="28" fill="white">Connecting healthcare professionals nationwide</text>
+</svg> 
