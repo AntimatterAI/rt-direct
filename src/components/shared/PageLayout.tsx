@@ -20,9 +20,9 @@ export default function PageLayout({
     : "bg-gradient-to-br from-blue-50 via-slate-50 to-green-50"
 
   return (
-    <div className={`min-h-screen ${backgroundClasses} ${className}`}>
+    <div className={`min-h-screen ${backgroundClasses} ${className} overflow-x-hidden max-w-full`}>
       {showHeader && <Header variant={variant} showBackground={variant !== 'home'} />}
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-full">
         {children}
       </main>
     </div>

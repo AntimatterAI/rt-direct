@@ -156,26 +156,26 @@ export default function JobsPage() {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8 w-full">
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   Browse Opportunities
                 </h1>
-                <p className="text-gray-600 text-lg">
+                <p className="text-gray-600 text-base sm:text-lg">
                   Discover your next radiologic technology position
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:space-x-4 flex-shrink-0">
                 <Badge className="bg-blue-100 text-blue-800 px-3 py-1">
                   {filteredJobs.length} {filteredJobs.length === 1 ? 'Position' : 'Positions'}
                 </Badge>
                 <Button
                   variant="outline"
                   onClick={() => setShowMap(!showMap)}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50 w-full sm:w-auto"
                 >
                   <MapPin className="w-4 h-4 mr-2" />
                   {showMap ? 'Hide Map' : 'Show Map'}
@@ -185,15 +185,15 @@ export default function JobsPage() {
 
             {/* Search and Filters */}
             <Card className="bg-white/80 backdrop-blur-md border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="relative">
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="relative sm:col-span-2 lg:col-span-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       placeholder="Search jobs, companies..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 w-full"
                     />
                   </div>
                   <div className="relative">
@@ -202,7 +202,7 @@ export default function JobsPage() {
                       placeholder="Location"
                       value={locationFilter}
                       onChange={(e) => setLocationFilter(e.target.value)}
-                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 w-full"
                     />
                   </div>
                   <div className="relative">
@@ -210,7 +210,7 @@ export default function JobsPage() {
                     <select
                       value={typeFilter}
                       onChange={(e) => setTypeFilter(e.target.value)}
-                      className="w-full pl-10 pr-4 h-12 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-blue-500 bg-white"
+                      className="w-full pl-10 pr-4 h-12 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-blue-500 bg-white appearance-none"
                     >
                       <option value="">All Types</option>
                       <option value="Full-time">Full-time</option>
@@ -223,7 +223,7 @@ export default function JobsPage() {
                     </select>
                   </div>
                   <Button 
-                    className="h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    className="h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full"
                     onClick={() => {
                       setSearchTerm('')
                       setLocationFilter('')
@@ -286,27 +286,27 @@ export default function JobsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 w-full">
               {filteredJobs.map((job) => (
                 <Card 
                   key={job.id} 
-                  className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+                  className="bg-white/80 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer group w-full"
                   onClick={() => router.push(`/jobs/${job.id}`)}
                 >
                   <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 break-words">
                           {job.title}
                         </CardTitle>
                         <div className="flex items-center space-x-2 mt-2">
-                          <Building className="w-4 h-4 text-gray-500" />
-                          <span className="text-gray-700 font-medium">{job.company || 'Company Name'}</span>
+                          <Building className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                          <span className="text-gray-700 font-medium truncate">{job.company || 'Company Name'}</span>
                         </div>
                       </div>
                       <Badge 
                         variant="secondary" 
-                        className="bg-blue-100 text-blue-800 ml-2 flex-shrink-0"
+                        className="bg-blue-100 text-blue-800 flex-shrink-0 self-start"
                       >
                         {job.posted_date ? getTimeAgo(job.posted_date) : 'Recently'}
                       </Badge>
@@ -314,14 +314,14 @@ export default function JobsPage() {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="w-4 h-4 text-gray-500" />
-                        <span className="text-gray-600">{job.location}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <span className="text-gray-600 truncate">{job.location}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 flex-shrink-0">
                         <DollarSign className="w-4 h-4 text-green-600" />
-                        <span className="text-green-700 font-medium">
+                        <span className="text-green-700 font-medium whitespace-nowrap">
                           {formatSalary(job.salary_min, job.salary_max)}
                         </span>
                       </div>
@@ -392,20 +392,20 @@ export default function JobsPage() {
 
           {/* Newsletter Signup */}
           <Card className="mt-12 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 border-0 text-white">
-            <CardContent className="p-8 text-center">
+            <CardContent className="p-6 sm:p-8 text-center">
               <Heart className="w-12 h-12 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2">Stay Updated</h3>
-              <p className="text-blue-100 mb-6">
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">Stay Updated</h3>
+              <p className="text-blue-100 mb-6 text-sm sm:text-base">
                 Get notified about new radiologic technology opportunities that match your preferences.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto w-full">
                 <Input 
                   placeholder="Enter your email"
-                  className="bg-white/10 border-white/20 text-white placeholder-blue-100"
+                  className="bg-white/10 border-white/20 text-white placeholder-blue-100 flex-1 w-full"
                 />
                 <Button 
                   variant="secondary"
-                  className="bg-white text-blue-600 hover:bg-gray-100"
+                  className="bg-white text-blue-600 hover:bg-gray-100 whitespace-nowrap w-full sm:w-auto"
                 >
                   Subscribe
                 </Button>

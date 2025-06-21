@@ -68,9 +68,9 @@ export default function Header({ showBackground = true }: HeaderProps) {
     : "bg-transparent"
 
   return (
-    <header className={`${headerClasses} sticky top-0 z-50 transition-all duration-300`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className={`${headerClasses} sticky top-0 z-50 transition-all duration-300 w-full overflow-x-hidden`}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 w-full">
+        <div className="flex justify-between items-center h-16 w-full">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
@@ -191,8 +191,8 @@ export default function Header({ showBackground = true }: HeaderProps) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 bg-white/95 backdrop-blur-sm rounded-b-lg shadow-lg">
-            <div className="flex flex-col space-y-4">
+          <div className="md:hidden py-4 border-t border-gray-100 bg-white/95 backdrop-blur-sm rounded-b-lg shadow-lg w-full overflow-x-hidden">
+            <div className="flex flex-col space-y-4 w-full">
               <Link 
                 href="/jobs" 
                 className="flex items-center text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 py-2 px-4 hover:bg-blue-50 rounded-lg"

@@ -116,7 +116,27 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
+  
+  html, body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* Prevent horizontal overflow globally */
+  .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    max-width: calc(100vw - 2rem);
+  }
+  
+  /* Ensure all text wraps properly */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Fix any potential grid overflow */
+  .grid {
+    width: 100%;
+    max-width: 100%;
   }
 }
