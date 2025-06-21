@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     siteName: "RT Direct",
     images: [
       {
-        url: "/og-image.svg",
+        url: "/og-image.png?v=2",
         width: 1200,
         height: 630,
         alt: "RT Direct - Radiologic Technologist Job Board",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RT Direct - Radiologic Technologist Job Board",
     description: "The leading platform connecting radiologic technologists with top healthcare facilities.",
-    images: ["/og-image.svg"],
+    images: ["/og-image.png?v=2"],
   },
   robots: {
     index: true,
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
       { url: "/favicon.svg", sizes: "32x32", type: "image/svg+xml" }
     ],
     apple: [
-      { url: "/apple-touch-icon-180.svg", sizes: "180x180", type: "image/svg+xml" }
+      { url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }
     ],
     other: [
       { rel: "manifest", url: "/site.webmanifest" },
@@ -92,7 +92,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon-180.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="mask-icon" href="/favicon.svg" color="#0A58CA" />
         <meta name="theme-color" content="#0A58CA" />
@@ -100,12 +100,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="RT Direct" />
-        <meta property="og:image" content="/og-image.svg" />
+        <meta property="og:image" content="/og-image.png?v=2" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:type" content="image/svg+xml" />
+        <meta property="og:image:type" content="image/png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="/og-image.svg" />
+        <meta name="twitter:image" content="/og-image.png?v=2" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className={inter.className}>{children}</body>
