@@ -1,7 +1,5 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="180" height="180" rx="32" fill="#0A58CA"/>
-  <path d="M90 125L65 100C50 85 50 60 65 45C72.5 37.5 82.5 37.5 90 45C97.5 37.5 107.5 37.5 115 45C130 60 130 85 115 100L90 125Z" 
-        fill="white" 
-        stroke="white" 
-        stroke-width="1"/>
+  <path d="M90 140 C70 120, 50 100, 50 75 C50 60, 62 50, 75 50 C82 50, 87 53, 90 58 C93 53, 98 50, 105 50 C118 50, 130 60, 130 75 C130 100, 110 120, 90 140 Z" 
+        fill="white"/>
 </svg> 
